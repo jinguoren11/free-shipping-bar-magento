@@ -45,3 +45,19 @@
 **一并回传**：浏览器控制台（F12 Console）报错原文；`var/log/system.log`、`exception.log` 里新增的与本插件有关的行。
 
 **预期结果**：以上全部通过；控制台无本插件相关报错。
+
+---
+## TR-002 ｜ 状态：待派单 ｜ 官方代码规范检查（phpcs，Marketplace 同款）
+
+云端装不了 phpcs（第三方包下载被网络规则拦截），请在 ASUS 上跑。可与 TR-001 同机、同一次完成。
+
+**包的位置**：同 TR-001（同分支）。
+**命令**（在装有 `magento/magento-coding-standard` 的环境里，路径换成插件目录）：
+```
+phpcs --standard=Magento2 --extensions=php,phtml --error-severity=10 --ignore-annotations --report=json --report-file=report.json app/code/GetDropFlow/FreeShippingBar
+```
+另跑一次看全部警告（不会拒审，但我想修）：
+```
+phpcs --standard=Magento2 --extensions=php,phtml app/code/GetDropFlow/FreeShippingBar
+```
+**预期结果**：severity≥10 的 Error 为 0（有任何 Error 就会被 Marketplace 拒）。请把 `report.json` 和警告输出原文贴回 `docs/TEST-REPORTS.md`。
