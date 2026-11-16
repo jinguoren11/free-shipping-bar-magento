@@ -1,0 +1,12 @@
+<?php
+/**
+ * Copyright (c) GetDropFlow. Licensed under the MIT License.
+ *
+ * @var \GetDropFlow\FreeShippingBar\Block\Bar $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+<div class="gdf-fsb-mount" data-bind="scope: '<?= $escaper->escapeHtmlAttr($block->getScopeName()) ?>'">
+    <!-- ko template: getTemplate() --><!-- /ko -->
+</div>
+<script type="text/x-magento-init"><?= /* @noEscape */ $block->getInitJson() ?></script>

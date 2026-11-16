@@ -1,0 +1,8 @@
+.gdf-fsb { margin: 10px 0; padding: 10px 12px; border: 1px solid #d9d9d9; border-radius: 4px; background: #fafafa; color: #333; font-size: 14px; line-height: 1.4; text-align: center; box-sizing: border-box; }
+.gdf-fsb--done { border-color: #b5d6b5; background: #f3faf3; }
+.gdf-fsb__message { display: block; word-wrap: break-word; }
+.gdf-fsb__track { height: 8px; margin-top: 8px; border-radius: 4px; background: #e3e3e3; overflow: hidden; }
+.gdf-fsb__fill { height: 100%; border-radius: 4px; transition: width .4s ease; }
+.gdf-fsb__percent { display: block; margin-top: 4px; font-size: 12px; color: #666; }
+[dir="rtl"] .gdf-fsb__fill { float: right; }
+@media (prefers-reduced-motion: reduce) { .gdf-fsb__fill { transition: none; } }
