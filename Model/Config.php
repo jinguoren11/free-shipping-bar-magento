@@ -25,11 +25,18 @@ class Config
     private $scopeConfig;
 
     /**
-     * @param ScopeConfigInterface $scopeConfig
+     * @var SelectorSanitizer
      */
-    public function __construct(ScopeConfigInterface $scopeConfig)
+    private $sanitizer;
+
+    /**
+     * @param ScopeConfigInterface $scopeConfig
+     * @param SelectorSanitizer|null $sanitizer
+     */
+    public function __construct(ScopeConfigInterface $scopeConfig, ?SelectorSanitizer $sanitizer = null)
     {
         $this->scopeConfig = $scopeConfig;
+        $this->sanitizer = $sanitizer ?: new SelectorSanitizer();
     }
 
     /**
@@ -81,5 +88,26 @@ class Config
     {
         $color = trim($this->value('appearance/bar_color', $storeId));
         return preg_match('/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $color) ? $color : '#3b6ea5';
+    }
+
+    /**
+     * Custom mount position (CSS selector) for "minicart", "cart" or "product". Empty = standard position.
+     *
+     * @param string $position
+     * @param int|string|null $storeId
+     * @return string
+     */
+    public function getSelector(string $position, $storeId = null): string
+    {
+        return $this->sanitizer->selector($this->value('theme/selector_' . $position, $storeId));
+    }
+
+    /**
+     * @param int|string|null $storeId
+     * @return string before|after|prepend|append
+     */
+    public function getPlacement($storeId = null): string
+    {
+        return $this->sanitizer->placement($this->value('theme/placement', $storeId));
     }
 }

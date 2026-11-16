@@ -7,11 +7,12 @@ declare(strict_types=1);
 namespace GetDropFlow\FreeShippingBar\CustomerData;
 
 use GetDropFlow\FreeShippingBar\Model\Config;
+use GetDropFlow\FreeShippingBar\Model\AmountFormatter;
 use GetDropFlow\FreeShippingBar\Model\SectionDataBuilder;
+use GetDropFlow\FreeShippingBar\Model\SectionSettings;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Customer\CustomerData\SectionSourceInterface;
 use Magento\Framework\Locale\ResolverInterface;
-use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
 /**
@@ -36,9 +37,14 @@ class FreeShippingBar implements SectionSourceInterface
     private $checkoutSession;
 
     /**
-     * @var PriceCurrencyInterface
+     * @var AmountFormatter
      */
-    private $priceCurrency;
+    private $formatter;
+
+    /**
+     * @var SectionSettings
+     */
+    private $settings;
 
     /**
      * @var StoreManagerInterface
@@ -54,7 +60,8 @@ class FreeShippingBar implements SectionSourceInterface
      * @param Config $config
      * @param SectionDataBuilder $builder
      * @param CheckoutSession $checkoutSession
-     * @param PriceCurrencyInterface $priceCurrency
+     * @param AmountFormatter $formatter
+     * @param SectionSettings $settings
      * @param StoreManagerInterface $storeManager
      * @param ResolverInterface $localeResolver
      */
@@ -62,14 +69,16 @@ class FreeShippingBar implements SectionSourceInterface
         Config $config,
         SectionDataBuilder $builder,
         CheckoutSession $checkoutSession,
-        PriceCurrencyInterface $priceCurrency,
+        AmountFormatter $formatter,
+        SectionSettings $settings,
         StoreManagerInterface $storeManager,
         ResolverInterface $localeResolver
     ) {
         $this->config = $config;
         $this->builder = $builder;
         $this->checkoutSession = $checkoutSession;
-        $this->priceCurrency = $priceCurrency;
+        $this->formatter = $formatter;
+        $this->settings = $settings;
         $this->storeManager = $storeManager;
         $this->localeResolver = $localeResolver;
     }
@@ -92,37 +101,10 @@ class FreeShippingBar implements SectionSourceInterface
             $isEmpty,
             !$isEmpty && $quote->isVirtual(),
             $isEmpty ? 0.0 : (float) $quote->getBaseSubtotalWithDiscount(),
-            [
-                'messages' => [
-                    'progress' => $this->config->value('messages/progress_message', $storeId),
-                    'success' => $this->config->value('messages/success_message', $storeId),
-                    'empty' => $this->config->value('messages/empty_message', $storeId),
-                ],
-                'bar_color' => $this->config->getBarColor($storeId),
-                'show_bar' => $this->config->flag('appearance/show_bar', $storeId),
-                'show_percent' => $this->config->flag('appearance/show_percent', $storeId),
-                'positions' => [
-                    'minicart' => $this->config->flag('general/show_minicart', $storeId),
-                    'cart' => $this->config->flag('general/show_cart', $storeId),
-                    'product' => $this->config->flag('general/show_product', $storeId),
-                ],
-            ],
+            $this->settings->get($storeId),
             function (float $baseAmount) use ($store): string {
-                return $this->format($baseAmount, $store);
+                return $this->formatter->format($baseAmount, $store);
             }
-        );
-    }
-
-    /**
-     * @param float $baseAmount
-     * @param \Magento\Store\Api\Data\StoreInterface $store
-     * @return string
-     */
-    private function format(float $baseAmount, $store): string
-    {
-        return html_entity_decode(
-            strip_tags((string) $this->priceCurrency->convertAndFormat($baseAmount, true, 2, $store)),
-            ENT_QUOTES | ENT_HTML5
         );
     }
 }

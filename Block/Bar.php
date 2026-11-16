@@ -55,6 +55,7 @@ class Bar extends Template
                         $this->getScopeName() => [
                             'component' => 'GetDropFlow_FreeShippingBar/js/view/bar',
                             'position' => (string) $this->getData('position'),
+                            'kind' => (string) ($this->getData('kind') ?: 'page'),
                         ],
                     ],
                 ],

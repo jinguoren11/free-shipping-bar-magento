@@ -16,6 +16,7 @@
                                             <item name="component" xsi:type="string">GetDropFlow_FreeShippingBar/js/view/bar</item>
                                             <item name="config" xsi:type="array">
                                                 <item name="position" xsi:type="string">minicart</item>
+                                                <item name="kind" xsi:type="string">region</item>
                                             </item>
                                             <item name="sortOrder" xsi:type="string">10</item>
                                         </item>
@@ -27,5 +28,14 @@
                 </argument>
             </arguments>
         </referenceBlock>
+        <!-- Only used when a custom mount position is set for the mini cart (the bar is then moved there). -->
+        <referenceContainer name="before.body.end">
+            <block class="GetDropFlow\FreeShippingBar\Block\Bar" name="gdf.fsb.minicart" template="GetDropFlow_FreeShippingBar::bar.phtml">
+                <arguments>
+                    <argument name="position" xsi:type="string">minicart</argument>
+                    <argument name="kind" xsi:type="string">footer</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
     </body>
 </page>

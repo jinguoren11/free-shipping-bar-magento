@@ -47,7 +47,8 @@ class SectionDataBuilder
      * @param bool $cartIsVirtual only virtual products (nothing is shipped)
      * @param float $baseSubtotal cart subtotal after discounts (base currency)
      * @param array $settings keys: messages (progress|success|empty => admin text), bar_color, show_bar,
-     *                        show_percent, positions (minicart|cart|product => bool)
+     *                        show_percent, positions (minicart|cart|product => bool),
+     *                        selectors (minicart|cart|product => CSS selector or ''), placement
      * @param callable $format float amount (base currency) => formatted text in the customer's currency
      * @return array
      */
@@ -89,6 +90,12 @@ class SectionDataBuilder
                 'cart' => (bool) ($settings['positions']['cart'] ?? false),
                 'product' => (bool) ($settings['positions']['product'] ?? false),
             ],
+            'selectors' => [
+                'minicart' => (string) ($settings['selectors']['minicart'] ?? ''),
+                'cart' => (string) ($settings['selectors']['cart'] ?? ''),
+                'product' => (string) ($settings['selectors']['product'] ?? ''),
+            ],
+            'placement' => (string) ($settings['placement'] ?? 'after'),
         ]);
     }
 }

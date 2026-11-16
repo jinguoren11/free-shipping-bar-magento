@@ -1,8 +1,30 @@
-.gdf-fsb { margin: 10px 0; padding: 10px 12px; border: 1px solid #d9d9d9; border-radius: 4px; background: #fafafa; color: #333; font-size: 14px; line-height: 1.4; text-align: center; box-sizing: border-box; }
-.gdf-fsb--done { border-color: #b5d6b5; background: #f3faf3; }
-.gdf-fsb__message { display: block; word-wrap: break-word; }
-.gdf-fsb__track { height: 8px; margin-top: 8px; border-radius: 4px; background: #e3e3e3; overflow: hidden; }
-.gdf-fsb__fill { height: 100%; border-radius: 4px; transition: width .4s ease; }
-.gdf-fsb__percent { display: block; margin-top: 4px; font-size: 12px; color: #666; }
-[dir="rtl"] .gdf-fsb__fill { float: right; }
-@media (prefers-reduced-motion: reduce) { .gdf-fsb__fill { transition: none; } }
+/*
+ * Free Shipping Progress Bar. Every class starts with gdf-fsb- so it cannot clash with a theme.
+ * Text color, font and size are inherited from the theme; only the bar color comes from the module settings.
+ */
+.gdf-fsb-mount { display: block; max-width: 100%; box-sizing: border-box; }
+.gdf-fsb-bar {
+    box-sizing: border-box;
+    max-width: 100%;
+    margin: .6em 0;
+    padding: .6em .8em;
+    border: 1px solid rgba(128, 128, 128, .4);
+    border-radius: .3em;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    line-height: 1.4;
+    text-align: center;
+}
+@supports (border-color: color-mix(in srgb, red 50%, blue)) {
+    .gdf-fsb-bar { border-color: color-mix(in srgb, currentColor 30%, transparent); }
+}
+.gdf-fsb-message { display: block; overflow-wrap: anywhere; word-break: break-word; }
+.gdf-fsb-track { height: .55em; margin-top: .55em; border-radius: .3em; background: rgba(128, 128, 128, .25); overflow: hidden; }
+.gdf-fsb-fill { height: 100%; border-radius: .3em; transition: width .4s ease; }
+.gdf-fsb-percent { display: block; margin-top: .3em; font-size: .85em; opacity: .75; }
+[dir="rtl"] .gdf-fsb-fill { float: right; }
+@media (max-width: 480px) {
+    .gdf-fsb-bar { padding: .5em .6em; font-size: .95em; }
+}
+@media (prefers-reduced-motion: reduce) { .gdf-fsb-fill { transition: none; } }

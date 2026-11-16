@@ -34,6 +34,8 @@ class SectionDataBuilderTest extends TestCase
                 'show_bar' => true,
                 'show_percent' => false,
                 'positions' => ['minicart' => true, 'cart' => true, 'product' => false],
+                'selectors' => ['minicart' => '', 'cart' => '.custom-cart', 'product' => ''],
+                'placement' => 'before',
             ],
             static function (float $amount): string {
                 return '$' . number_format($amount, 2);
@@ -80,10 +82,12 @@ class SectionDataBuilderTest extends TestCase
     public function testEveryFieldTheBrowserNeedsIsThere(): void
     {
         $d = $this->run1(10.0);
-        foreach (['visible', 'store_code', 'lang', 'state', 'percent', 'message', 'bar_color', 'show_bar', 'show_percent', 'positions'] as $key) {
+        foreach (['visible', 'store_code', 'lang', 'state', 'percent', 'message', 'bar_color', 'show_bar', 'show_percent', 'positions', 'selectors', 'placement'] as $key) {
             $this->assertArrayHasKey($key, $d);
         }
         $this->assertSame(['minicart' => true, 'cart' => true, 'product' => false], $d['positions']);
+        $this->assertSame(['minicart' => '', 'cart' => '.custom-cart', 'product' => ''], $d['selectors']);
+        $this->assertSame('before', $d['placement']);
         $this->assertSame('default', $d['store_code']);
         $this->assertSame('en', $d['lang']);
     }

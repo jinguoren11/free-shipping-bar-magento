@@ -69,6 +69,24 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
+            <group id="theme" translate="label comment" type="text" sortOrder="45" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Theme Compatibility</label>
+                <comment><![CDATA[Only needed if the bar does not appear where you want it with your theme. Enter a CSS selector of an element on the page (for example <code>.page-title-wrapper</code> or <code>#maincontent</code>); the bar is then placed next to it. Leave empty to use the standard position. If an element cannot be found on the page, the bar is simply not shown there.]]></comment>
+                <field id="selector_cart" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cart Page: Custom Position (CSS selector)</label>
+                </field>
+                <field id="selector_product" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Product Page: Custom Position (CSS selector)</label>
+                </field>
+                <field id="selector_minicart" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Mini Cart: Custom Position (CSS selector)</label>
+                    <comment>For themes whose mini cart has no standard place for extra content.</comment>
+                </field>
+                <field id="placement" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Placement Relative to the Element</label>
+                    <source_model>GetDropFlow\FreeShippingBar\Model\Config\Source\Placement</source_model>
+                </field>
+            </group>
             <group id="about" translate="label comment" type="text" sortOrder="90" showInDefault="1">
                 <label>About</label>
                 <comment><![CDATA[Free and open source (MIT). Made by GetDropFlow &mdash; <a href="https://getdropflow.com" target="_blank" rel="noopener noreferrer">getdropflow.com</a>]]></comment>
