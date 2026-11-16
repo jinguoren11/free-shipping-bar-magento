@@ -41,6 +41,10 @@ bin/magento cache:flush
 
 If your store is in production mode, run all the commands above. In developer mode `setup:di:compile` is not needed.
 
+## Updating
+
+Updates are delivered through Adobe Commerce Marketplace, the same way as the installation (Composer). Run `composer update getdropflow/module-free-shipping-bar`, then `bin/magento setup:upgrade`, `bin/magento setup:di:compile`, `bin/magento setup:static-content:deploy -f` and `bin/magento cache:flush`. **The extension never downloads or replaces code by itself and never contacts other websites.** Your settings are kept.
+
 To uninstall: `bin/magento module:disable GetDropFlow_FreeShippingBar`, then `composer remove getdropflow/module-free-shipping-bar`, then `bin/magento setup:upgrade` and `bin/magento cache:flush`. The module creates no database tables.
 
 # 3. Quick start (2 minutes)
@@ -107,7 +111,7 @@ Example custom text: `Only {{amount}} left for free shipping on orders over {{th
 
 | Setting | What it does |
 |---|---|
-| Show "More tools" Panel | Shows or hides a small list of the author's other tools at the bottom of this settings page. It is a fixed list inside the extension: it makes no network requests and collects no data. |
+| Show "More tools" Panel | **Off by default.** Turn it on to show a small fixed list of the author's other tools at the bottom of this settings page. It makes no network requests and collects no data. |
 
 # 5. How the amount is calculated
 
@@ -142,7 +146,7 @@ Example custom text: `Only {{amount}} left for free shipping on orders over {{th
 | The amount is in the wrong currency | The custom threshold is entered in the **base currency** and converted to the display currency. Check the currency rates under **Stores > Currency Rates**. |
 | The amount does not change after changing the cart | Clear the browser cache, and check the browser console (F12) for errors that mention `free-shipping-bar` or `bar.js`; another extension or a theme customization may be blocking the cart data from loading. |
 | The bar says "free shipping" but checkout does not offer it | See "Not read by the bar" in section 5. |
-| Settings page shows no "More tools" box | It is switched off with **Show "More tools" Panel**, or you are looking at a website/store-view scope (the box is shown at the default scope). |
+| Settings page shows no "More tools" box | It is **off by default**; switch it on with **Show "More tools" Panel**. Also check that you are not looking at a website/store-view scope (the box is shown at the default scope). |
 
 If you report a problem, please include your Magento version, PHP version, theme name, and any error text from the browser console (press F12) and from `var/log/system.log`.
 

@@ -3,7 +3,7 @@
 **最后更新**：2026-11-16（第 6 阶段：一键升级 + 双渠道；下载分流改为 GitHub Releases）　**分支**：`claude/magento-free-shipping-bar-mqm0n2`　**仓库**：jinguoren11/free-shipping-bar-magento
 
 ## 当前阶段
-**新铁规矩：每个插件必须一键升级。** 设计已写 `docs/05-一键升级与双渠道设计.md`；**阶段 1 已完成**（渠道构建开关、签名校验、zip 安全检查）；下一步阶段 2（升级引擎）。实机待办：TR-001/002/003（待派单）；TR-004/005（升级成功/失败退回）要等阶段 2–3 实现后才能派单。读过 `docs/OWNER-DECISIONS.md`：**仍不存在**；读过 `docs/TEST-REPORTS.md`：无报告。
+**新铁规矩：每个插件必须一键升级。** 设计已写 `docs/05-一键升级与双渠道设计.md`；**阶段 1 已完成**（渠道构建开关、签名校验、zip 安全检查）；下一步阶段 2（升级引擎）。实机待办：TR-001/002/003（待派单）；TR-004/005（升级成功/失败退回）要等阶段 2–3 实现后才能派单。已读 `from-a:docs/FROM-A/001-owner-decisions.md` 和 README；读过 `docs/TEST-REPORTS.md`：无报告。
 
 ## 已完成
 - ✅ 官方上架规则研究 → `docs/01-上架规则一页纸.md`
@@ -13,6 +13,7 @@
 - ✅ 单元测试 16 项全过（计算、文案、"更多工具"目录、禁止联网代码扫描）
 - ✅ 客户教程（中文）`docs/user-guide/客户教程.zh.md`（含报错说明、截图清单）；用户手册英文稿 `docs/user-guide/USER-GUIDE.en.md`；PDF 生成脚本 `build/build-guide-pdf.sh`（缺截图时输出 *-DRAFT.pdf，禁止上传）
 - ✅ 老任已决定：保守引流（前台无广告；后台一行作者+静态"更多工具"面板可关；上架描述不推广；靠开发者资料网址+GitHub README）；Vendor Name 用 GetDropFlow
+- ✅ 用户手册/教程补了"更新版本"一节（Marketplace 版靠 Adobe 更新、插件不自己下载、"更多工具"默认关），符合 001
 - ✅ 一键升级阶段 1：`build/package.sh --channel=marketplace|direct` 两个包（Marketplace 包里无任何升级文件且自动扫描通过、"更多工具"默认关）；`ReleaseManifest`（Ed25519 签名+字段+下载地址白名单+版本比较）；`PackageInspector`（大小/sha256/zip 路径安全/版本一致）；`build/sign-release.php`（生成密钥、签名 latest.json）；单测共 30 项全过，并用临时密钥端到端验证过
 - ✅ 插件内推广规则研究 + 静态"更多工具"后台面板（无联网，可关）→ `docs/04-…md`
 
@@ -77,7 +78,10 @@
 - 前置条件（建议）：TR-001/002/003 通过；TR-004/005 通过；仓库内容复查（无密钥/内部信息，已核对插件代码里没有老任地址等）；README 定稿。
 - 选项：①通过后公开 ②先开测试版公开仓库再…（不建议）。我的建议：①，且在公开前由总管跑一遍"仓库公开前检查"。
 
-### 老任已在对话中直接给出、**尚待总管抄进 OWNER-DECISIONS.md 确认**的决定
+### 已由总管确认：`from-a` 分支 `docs/FROM-A/001-owner-decisions.md`（2026-11-16）
+以下决定已在 001 里写明（A 选 2、一键升级铁规矩、GitHub Releases 分流、仓库保持私有、欧盟信息）；我读完并照办。以后以 FROM-A 目录为准（每步开工前 `git fetch origin from-a`），不再看 OWNER-DECISIONS.md。
+
+（以下是我早先记录的原文，供对照）
 0. **A 选 2**：Marketplace 版"更多工具"面板默认关（无推广版）上架；GitHub/官网下载版默认开。
 0. **铁规矩（一键升级）**：direct 版做设置页升级卡片（备份→升级→失败自动退回，沿用 GetDropFlow 做法，版本信息和升级包放 getdropflow.com 公开静态文件、不需要授权服务器）；Marketplace 版不带自己下载代码的功能，靠 Adobe 更新，手册写明；两个版本同一份代码、一个开关区分渠道。
 0. **下载分流（最新，取代"主下载放官网"）**：主下载放 **GitHub Releases**（每个版本附 zip），官网不另存下载，只放说明/下载页，下载按钮直接指向 Releases 里 zip 的下载地址（浏览器直接下载）；官网下载页和插件设置页底部各放一个"在 GitHub 上点星"链接，**仓库公开前不上线**；引流写在 README 和 Releases 说明里（"更多功能见 GetDropFlow（getdropflow.com）"+ 请点星）；一键升级卡片读 **GitHub Releases 公开信息（缓存）**，仍然备份、出错自动退回；**仓库先保持私有，做好测试后由老任批准再公开，我不改仓库可见性**；Marketplace 版规则不变（无推广版、无自己下载代码的功能）。
