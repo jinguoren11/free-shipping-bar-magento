@@ -69,3 +69,12 @@ phpcs --standard=Magento2 --extensions=php,phtml app/code/GetDropFlow/FreeShippi
 **要拍的图**：见 `docs/user-guide/客户教程.zh.md` 末尾"截图清单"（01–08、E1，共 9 组）。
 **规则**：红框用红色矩形 #FF0000、线宽 3px；不要带网址栏和浏览器边框；PNG，每张 <5MB；文件放到 `docs/user-guide/images/`，文件名用清单里的名字加后缀（如 `01-overview.png`、`07-es.png`、`08-zh.png`、`E1.png`）。
 **预期**：每张图一眼能看出红框里的内容；英文界面为主，07/08 为西/中。
+
+---
+## TR-004 / TR-005 ｜ 状态：**暂缓，阶段 2–3 实现后再派单**（先登记，让总管知道要准备的环境）｜ 一键升级
+
+**TR-004 升级成功**：旧版（1.0.0 direct 包）→ 新版（我会另出 1.0.1 direct 测试包 + 本地测试用 latest.json，**不碰 getdropflow.com 正式站**）。预期：卡片"检查更新"→显示新版→点"一键升级"→进度→完成；前台进度条正常；版本号变 1.0.1；维护模式已退出；旧目录备份在位；`bin/magento module:status` 已启用。
+**TR-005 失败自动退回**（各做一次）：①包被篡改（sha256 不符）②latest.json 签名不对 ③坏包（换文件后编译失败）④升级中途 `kill` 后台进程。预期：全部退回 1.0.0，站点可正常访问，卡片显示原因，维护模式已退出；无法退回时保持维护模式并显示恢复命令。
+**预检**：目录不可写 / Composer 安装的实例 → 按钮置灰 + 原因。
+**Marketplace 版**：包内无升级相关文件、设置页无升级卡片。
+**环境要求**：ASUS 的预览站要能在后台进程里执行 `bin/magento`（php-cli 可用），`app/code` 目录对 Web/CLI 用户可写；需要本地 HTTP 服务放测试 latest.json（仅 127.0.0.1 / localhost 允许非 https，供测试）。
