@@ -36,10 +36,23 @@
 
 ## 需要老任批准 / 提供的事
 （已决定的：保守引流、Vendor Name=GetDropFlow。）
-1. **欧盟 trader 公开信息**（商家名称/邮箱/地址）：老任还没定——**我没填、没猜**，上架前再单独问
+1. ~~欧盟 trader 公开信息~~：老任已决定，见下方"上架信息"
 2. **"更多工具"名单**：其他插件的 名称/一句话/官网链接（现在只有 GetDropFlow 一项）；并确认 GetDropFlow 那句介绍准确
 3. 建议（非阻塞）：提交前确认一次 Master Terms 第 3 条（15% 服务费）是否影响后台推荐面板；退路 = `show_more_tools` 默认改 0
 4. 开发者账号 PayPal 邮箱（账号资料，我不碰）
+
+## 上架信息（只在 Marketplace 上架表单和插件页使用；**不写进插件代码**）
+**欧盟 trader（Developer Portal 个人资料 → Trader information，会公开显示在欧盟用户看到的插件页上；老任已知并同意，与 getdropflow.com 条款页公开信息一致）**
+| 字段 | 内容 |
+|---|---|
+| Business Name | GetDropFlow（运营者 JinGuo Ren） |
+| Business Email | support@getdropflow.com |
+| Business Address | 10564 Clasico Ct, San Diego, CA 92127-3320, US |
+| DUNS Number | 不填（可选） |
+
+其他已定：Vendor Name = GetDropFlow；价格 0；许可证 MIT；标题 Free Shipping Progress Bar。
+未定：PayPal 邮箱（账号资料，由老任自己填，我不碰）。
+注：这些信息由老任在账号里填写；我这边没有账号权限，不会代填。
 
 ## 环境备注
 - 云端环境 `free-shipping-bar-magento` 额外放行了：developer.adobe.com、experienceleague.adobe.com、commercemarketplace.adobe.com、www.adobe.com（只为读官方文档）
