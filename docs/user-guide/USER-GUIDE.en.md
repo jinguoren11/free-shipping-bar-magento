@@ -47,6 +47,10 @@ Updates are delivered through Adobe Commerce Marketplace, the same way as the in
 
 To uninstall: `bin/magento module:disable GetDropFlow_FreeShippingBar`, then `composer remove getdropflow/module-free-shipping-bar`, then `bin/magento setup:upgrade` and `bin/magento cache:flush`. The module creates no database tables.
 
+## Themes
+
+The bar works with Magento's standard themes (Luma, Blank) and themes built on them. All style classes start with `gdf-fsb-`; text color and font are inherited from your theme, and the layout adapts to narrow screens. If your theme shows the bar in the wrong place or not at all, set a **custom position** (section 4, *Theme Compatibility*). For **Hyvä** themes, install the separate compatibility package `getdropflow/module-free-shipping-bar-hyva` as well.
+
 # 3. Quick start (2 minutes)
 
 1. Go to **Stores > Configuration > Sales > Delivery Methods > Free Shipping**. Set **Enabled** to *Yes* and enter a **Minimum Order Amount** greater than 0, for example 50. Save.
@@ -107,6 +111,15 @@ Example custom text: `Only {{amount}} left for free shipping on orders over {{th
 | Show Progress Bar | Show or hide the bar and keep only the text. |
 | Show Percentage | Shows the percentage under the bar. |
 
+## Theme Compatibility
+
+Only needed if the bar does not appear where you want it with your theme.
+
+| Setting | What it does |
+|---|---|
+| Cart Page / Product Page / Mini Cart: Custom Position (CSS selector) | A CSS selector of an element on the page, for example `.page-title-wrapper` or `#maincontent`. The bar is placed next to that element. Leave empty to use the standard position. If the element cannot be found on the page, the bar is not shown there. |
+| Placement Relative to the Element | After the element, before the element, or inside it at the start or at the end. |
+
 ## About
 
 | Setting | What it does |
@@ -140,7 +153,7 @@ Example custom text: `Only {{amount}} left for free shipping on orders over {{th
 | Problem | What to check |
 |---|---|
 | The bar does not appear anywhere | 1) **Enable** is *Yes* for the current store view. 2) With the automatic source, the Free Shipping method is enabled and its Minimum Order Amount is above 0 (for the right website). 3) Flush the cache and, in production mode, redeploy static content (`bin/magento setup:static-content:deploy -f`). 4) The cart does not contain only virtual products. |
-| The bar appears in the cart but not in the mini cart | The theme must use the standard Magento mini cart. Custom themes that replace the mini cart template may need the bar added by a developer. |
+| The bar appears in the cart but not in the mini cart | The theme must use the standard Magento mini cart. If your theme replaces it, use **Mini Cart: Custom Position** (section 4, Theme Compatibility). |
 | The bar appears on the cart page but not on the product page | Check **Show on Product Page**. Custom product page layouts must keep the standard `product.info.main` container. |
 | The text is in the wrong language | Texts follow the store view language. If a text is empty in the settings it uses the built-in translation; a custom text typed in one store view is shown only in that store view. After changing store view in the browser, reload the page once. |
 | The amount is in the wrong currency | The custom threshold is entered in the **base currency** and converted to the display currency. Check the currency rates under **Stores > Currency Rates**. |

@@ -3,14 +3,18 @@
 #   ./build/package.sh --channel=marketplace   Adobe Commerce Marketplace edition (no code that downloads code,
 #                                               "More tools" panel off by default). Files at the zip root (Composer package).
 #   ./build/package.sh --channel=direct        Edition for getdropflow.com / GitHub (one-click upgrade). Zip holds one folder
+#   add --module=hyva to build the Hyva compatibility module (Compat/Hyva) instead of the main module.
 #                                               "FreeShippingBar/" to unzip into app/code/GetDropFlow/. (default)
 # Output: dist/getdropflow-module-free-shipping-bar-<version>-<channel>.zip
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 CHANNEL=direct
+MODULE=main
 for arg in "$@"; do
     case "$arg" in
+        --module=hyva) MODULE=hyva ;;
+        --module=main) MODULE=main ;;
         --channel=marketplace) CHANNEL=marketplace ;;
         --channel=direct) CHANNEL=direct ;;
         *) echo "Unknown option: $arg" >&2; exit 2 ;;
@@ -18,18 +22,25 @@ for arg in "$@"; do
 done
 
 VERSION=$(php -r 'echo json_decode(file_get_contents("composer.json"))->version;')
-OUT="dist/getdropflow-module-free-shipping-bar-${VERSION}-${CHANNEL}.zip"
-STAGE="dist/stage-${CHANNEL}"
-FILES=(Block CustomerData Model etc view i18n registration.php composer.json LICENSE README.md)
+if [ "$MODULE" = hyva ]; then
+    NAME=getdropflow-module-free-shipping-bar-hyva; TOP=FreeShippingBarHyva; SRC=Compat/Hyva
+    FILES=(ViewModel etc view registration.php composer.json README.md)
+else
+    NAME=getdropflow-module-free-shipping-bar; TOP=FreeShippingBar; SRC=.
+    FILES=(Block CustomerData Model etc view i18n registration.php composer.json LICENSE README.md)
+fi
+OUT="dist/${NAME}-${VERSION}-${CHANNEL}.zip"
+STAGE="dist/stage-${MODULE}-${CHANNEL}"
 
-rm -rf "$STAGE"; mkdir -p "$STAGE/FreeShippingBar"
-for f in "${FILES[@]}"; do cp -R "$f" "$STAGE/FreeShippingBar/"; done
+rm -rf "$STAGE"; mkdir -p "$STAGE/$TOP"
+for f in "${FILES[@]}"; do cp -R "$SRC/$f" "$STAGE/$TOP/"; done
+[ "$MODULE" = hyva ] && cp LICENSE "$STAGE/$TOP/LICENSE"
 find "$STAGE" -name '.DS_Store' -delete
-MOD="$STAGE/FreeShippingBar"
+MOD="$STAGE/$TOP"
 
 if [ "$CHANNEL" = marketplace ]; then
     # 0) promotion-free README for the Marketplace edition
-    cp README.marketplace.md "$MOD/README.md"
+    [ "$MODULE" = main ] && cp README.marketplace.md "$MOD/README.md"
     # 1) remove direct-only files and blocks
     rm -rf "$MOD/Model/Upgrade"
     python3 -I - "$MOD" <<'PY'
@@ -51,8 +62,10 @@ for rel in ['Block/Adminhtml/System/Config/UpgradeCard.php',
         f.unlink()
 PY
     # 2) edition settings
-    sed -i "s#const CURRENT = 'direct'; // CHANNEL-VALUE#const CURRENT = 'marketplace'; // CHANNEL-VALUE#" "$MOD/Model/Channel.php"
-    sed -i 's#<show_more_tools>1</show_more_tools>#<show_more_tools>0</show_more_tools>#' "$MOD/etc/config.xml"
+    if [ "$MODULE" = main ]; then
+        sed -i "s#const CURRENT = 'direct'; // CHANNEL-VALUE#const CURRENT = 'marketplace'; // CHANNEL-VALUE#" "$MOD/Model/Channel.php"
+        sed -i 's#<show_more_tools>1</show_more_tools>#<show_more_tools>0</show_more_tools>#' "$MOD/etc/config.xml"
+    fi
     # 3) the Marketplace edition must not contain anything that downloads, unpacks or runs code
     if grep -rInE '(curl_|shell_exec|proc_open|popen|passthru|\bexec\s*\(|\bsystem\s*\(|ZipArchive|sodium_crypto_sign|api\.github\.com|releases/download|Model\\\\Upgrade|Upgrade\\\\)' \
         --include='*.php' --include='*.xml' --include='*.js' --include='*.phtml' --include='*.html' "$MOD"; then
@@ -74,7 +87,7 @@ mkdir -p dist && rm -f "$OUT"
 if [ "$CHANNEL" = marketplace ]; then
     (cd "$MOD" && zip -qr "../../../$OUT" .)
 else
-    (cd "$STAGE" && zip -qr "../../$OUT" FreeShippingBar)
+    (cd "$STAGE" && zip -qr "../../$OUT" "$TOP")
 fi
 rm -rf "$STAGE"
 SIZE=$(wc -c < "$OUT")

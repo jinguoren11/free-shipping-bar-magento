@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!-- Hyva only: replaces the Luma (Knockout) bar of the main module with the Alpine.js one. -->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="gdf.fsb.product" remove="true"/>
+        <referenceContainer name="product.info.main">
+            <block class="Magento\Framework\View\Element\Template" name="gdf.fsb.hyva.product" template="GetDropFlow_FreeShippingBarHyva::bar.phtml" after="product.info.price">
+                <arguments>
+                    <argument name="position" xsi:type="string">product</argument>
+                    <argument name="initial_state" xsi:type="object">GetDropFlow\FreeShippingBarHyva\ViewModel\InitialState</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

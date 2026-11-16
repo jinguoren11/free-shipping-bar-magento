@@ -78,3 +78,29 @@ phpcs --standard=Magento2 --extensions=php,phtml app/code/GetDropFlow/FreeShippi
 **预检**：目录不可写 / Composer 安装的实例 → 按钮置灰 + 原因。
 **Marketplace 版**：包内无升级相关文件、设置页无升级卡片。
 **环境要求**：ASUS 的预览站要能在后台进程里执行 `bin/magento`（php-cli 可用），`app/code` 目录对 Web/CLI 用户可写；需要在预览站本机起一个本地 HTTP 测试服务（仅 127.0.0.1 / localhost 允许非 https，供测试）。
+
+---
+## TR-006 ｜ 状态：待派单（依赖 P1 修复提交；可与 TR-001 同机）｜ 主题兼容（详见 docs/THEMES.md）
+
+**包的位置**：同 TR-001 的分支，最新提交（见 docs/STATUS.md 顶部提交号）。主包 `./build/package.sh --channel=direct`；Hyvä 兼容包 `./build/package.sh --channel=direct --module=hyva`（输出 `dist/getdropflow-module-free-shipping-bar-hyva-1.0.0-direct.zip`，解压到 `app/code/GetDropFlow/FreeShippingBarHyva/`，再 `module:enable GetDropFlow_FreeShippingBarHyva`、`setup:upgrade`、`cache:flush`）。
+**要测的主题（按优先级）**：
+1. **Luma（默认）**——标准位置（小购物车、购物车页、商品页）能看到条（P1 修复后第一次验证位置）
+2. **Blank**
+3. **Hyvä 默认主题**（装主包 + Hyvä 兼容包）
+4. **Hyvä CSP 版**（Hyva/default-csp，看浏览器控制台有没有 CSP 报错）
+5. 一个**子主题**（继承 Luma，改过头部/小购物车区域）
+6. 一个**第三方主题**：总管挑 1–2 个当时能免费装到的 Luma 系主题/演示主题（我不指定具体名字）
+**每个主题都做**：
+| # | 检查 | 预期 |
+|---|---|---|
+| a | 三处位置（Hyvä 的小购物车除外）购物车 $10 | 显示"再买 $40 免运费"，进度条 20% |
+| b | 空购物车、首次访问（无会话的新访客，清 Cookie 后） | 显示"满 $50 免运费"（Hyvä 靠页面里预先渲染的空车状态） |
+| c | 手机宽度 360px 和 768px | 不溢出、不遮挡，文字换行正常 |
+| d | 颜色/字体 | 文字颜色和字体与主题一致（不是写死的颜色）；暗色背景主题上文字仍可读 |
+| e | 自定义位置：填一个**存在**的选择器（如 `#maincontent`），相对位置分别选 4 种 | 条出现在对应位置 |
+| f | 自定义位置：填**不存在**的选择器（`.nope`）和**非法**选择器（`<<<`、`a{b}`） | 该位置不显示条；控制台**无 JS 报错**；其它位置正常 |
+| g | 清空选择器 | 回到标准位置 |
+| h | 小购物车自定义位置（Hyvä 和 去掉了标准小购物车的主题） | 条出现在填的位置 |
+| i | 控制台（F12）| 无与 gdf / free-shipping-bar 相关的报错 |
+| j | Hyvä：切换商店视图（英→西） | 文字/币种随商店视图变化（需要至多刷新一次） |
+**预期结果**：以上通过；不通过的写明主题名、位置、浏览器控制台原文、截图（红框）。

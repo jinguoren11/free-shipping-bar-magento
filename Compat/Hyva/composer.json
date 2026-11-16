@@ -1,0 +1,21 @@
+{
+    "name": "getdropflow/module-free-shipping-bar-hyva",
+    "description": "Hyva theme compatibility for the Free Shipping Progress Bar module (Alpine.js, no Knockout / RequireJS).",
+    "type": "magento2-module",
+    "version": "1.0.0",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.1",
+        "magento/framework": ">=103.0.0",
+        "getdropflow/module-free-shipping-bar": ">=1.0.0"
+    },
+    "suggest": {
+        "hyva-themes/magento2-default-theme": "The Hyva theme this module is made for"
+    },
+    "autoload": {
+        "files": ["registration.php"],
+        "psr-4": {
+            "GetDropFlow\\FreeShippingBarHyva\\": ""
+        }
+    }
+}
