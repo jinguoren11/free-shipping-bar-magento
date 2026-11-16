@@ -1,6 +1,6 @@
 # STATUS — 云端电脑D（Free Shipping Progress Bar，Magento 2 免费插件）
 
-**最后更新**：2026-11-16（第 6 阶段：一键升级 + 双渠道；下载分流改为 GitHub Releases）　**分支**：`claude/magento-free-shipping-bar-mqm0n2`　**仓库**：jinguoren11/free-shipping-bar-magento
+**最后更新**：2026-11-16　**P1 修复提交：`ceb052cd`（请 ASUS 用它重装）**　（第 6 阶段：一键升级 + 双渠道；下载分流改为 GitHub Releases）　**分支**：`claude/magento-free-shipping-bar-mqm0n2`　**仓库**：jinguoren11/free-shipping-bar-magento
 
 ## 当前阶段
 **新铁规矩：每个插件必须一键升级。** 设计已写 `docs/05-一键升级与双渠道设计.md`；**阶段 1 已完成**（渠道构建开关、签名校验、zip 安全检查）；下一步阶段 2（升级引擎）。实机待办：TR-001/002/003（待派单）；TR-004/005（升级成功/失败退回）要等阶段 2–3 实现后才能派单。已读 `from-a:docs/FROM-A/001-owner-decisions.md` 和 README；读过 `docs/TEST-REPORTS.md`：无报告。
@@ -43,7 +43,9 @@
 ## 问题清单
 | # | 问题 | 状态 |
 |---|---|---|
-| 1 | 云端无法运行 phpcs（网络限制，非代码问题） | 已转 TR-002 |
+| 1 | 云端无法运行 phpcs（网络限制，非代码问题） | 已转 TR-002；**新提交上请 ASUS 再跑一次** |
+| P1 | 进度条从不显示：`getSectionData()` 用 `$base + [...]`，`visible` 仍是 false（ASUS 报告 012） | **已修，提交 `ceb052cd`**：改 `array_merge`，组装逻辑抽到 `Model/SectionDataBuilder`（无 Magento 依赖）；新增 6 项不 mock 的测试覆盖 进度中/已达标/空车=true、虚拟商品/关闭/无门槛=false；把 `array_merge` 改回 `+` 实测 3 项变红；共 37 项测试全过 |
+| 2 | Windows 克隆后 `package.sh` 换行符失败 | **已修，提交 `ceb052cd`**：加 `.gitattributes`（*.sh 等强制 LF） |
 
 ## 需要老任批准
 > 规则：我不在对话里直接问老任；总管拿到答复后写入 `docs/OWNER-DECISIONS.md`，我开工前读它。**没出现在那里的批准一律视为没有批准。**
