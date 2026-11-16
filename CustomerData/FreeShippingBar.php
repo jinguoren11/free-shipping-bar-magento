@@ -7,8 +7,7 @@ declare(strict_types=1);
 namespace GetDropFlow\FreeShippingBar\CustomerData;
 
 use GetDropFlow\FreeShippingBar\Model\Config;
-use GetDropFlow\FreeShippingBar\Model\MessageBuilder;
-use GetDropFlow\FreeShippingBar\Model\ProgressCalculator;
+use GetDropFlow\FreeShippingBar\Model\SectionDataBuilder;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Customer\CustomerData\SectionSourceInterface;
 use Magento\Framework\Locale\ResolverInterface;
@@ -21,26 +20,15 @@ use Magento\Store\Model\StoreManagerInterface;
  */
 class FreeShippingBar implements SectionSourceInterface
 {
-    private const MESSAGE_KEYS = [
-        ProgressCalculator::STATE_EMPTY => 'messages/empty_message',
-        ProgressCalculator::STATE_PROGRESS => 'messages/progress_message',
-        ProgressCalculator::STATE_DONE => 'messages/success_message',
-    ];
-
     /**
      * @var Config
      */
     private $config;
 
     /**
-     * @var ProgressCalculator
+     * @var SectionDataBuilder
      */
-    private $calculator;
-
-    /**
-     * @var MessageBuilder
-     */
-    private $messageBuilder;
+    private $builder;
 
     /**
      * @var CheckoutSession
@@ -64,8 +52,7 @@ class FreeShippingBar implements SectionSourceInterface
 
     /**
      * @param Config $config
-     * @param ProgressCalculator $calculator
-     * @param MessageBuilder $messageBuilder
+     * @param SectionDataBuilder $builder
      * @param CheckoutSession $checkoutSession
      * @param PriceCurrencyInterface $priceCurrency
      * @param StoreManagerInterface $storeManager
@@ -73,16 +60,14 @@ class FreeShippingBar implements SectionSourceInterface
      */
     public function __construct(
         Config $config,
-        ProgressCalculator $calculator,
-        MessageBuilder $messageBuilder,
+        SectionDataBuilder $builder,
         CheckoutSession $checkoutSession,
         PriceCurrencyInterface $priceCurrency,
         StoreManagerInterface $storeManager,
         ResolverInterface $localeResolver
     ) {
         $this->config = $config;
-        $this->calculator = $calculator;
-        $this->messageBuilder = $messageBuilder;
+        $this->builder = $builder;
         $this->checkoutSession = $checkoutSession;
         $this->priceCurrency = $priceCurrency;
         $this->storeManager = $storeManager;
@@ -96,51 +81,36 @@ class FreeShippingBar implements SectionSourceInterface
     {
         $store = $this->storeManager->getStore();
         $storeId = (int) $store->getId();
-        $base = [
-            'visible' => false,
-            'store_code' => $store->getCode(),
-            'lang' => strtolower((string) strstr($this->localeResolver->getLocale() . '_', '_', true)),
-        ];
-
-        $threshold = $this->config->getThreshold($storeId);
-        if (!$this->config->flag('general/enabled', $storeId) || $threshold === null) {
-            return $base;
-        }
-
         $quote = $this->checkoutSession->getQuote();
         $isEmpty = !$quote->getId() || (float) $quote->getItemsQty() <= 0;
-        if (!$isEmpty && $quote->isVirtual()) {
-            return $base; // nothing is shipped, so a free shipping hint would be misleading
-        }
 
-        $result = $this->calculator->calculate(
-            $threshold,
+        return $this->builder->build(
+            (string) $store->getCode(),
+            strtolower((string) strstr($this->localeResolver->getLocale() . '_', '_', true)),
+            $this->config->flag('general/enabled', $storeId),
+            $this->config->getThreshold($storeId),
+            $isEmpty,
+            !$isEmpty && $quote->isVirtual(),
             $isEmpty ? 0.0 : (float) $quote->getBaseSubtotalWithDiscount(),
-            $isEmpty
-        );
-
-        $amountText = $this->format($result['remaining'], $store);
-        $thresholdText = $this->format($threshold, $store);
-
-        return $base + [
-            'visible' => true,
-            'state' => $result['state'],
-            'percent' => $result['percent'],
-            'message' => $this->messageBuilder->build(
-                $result['state'],
-                $this->config->value(self::MESSAGE_KEYS[$result['state']], $storeId),
-                $amountText,
-                $thresholdText
-            ),
-            'bar_color' => $this->config->getBarColor($storeId),
-            'show_bar' => $this->config->flag('appearance/show_bar', $storeId),
-            'show_percent' => $this->config->flag('appearance/show_percent', $storeId),
-            'positions' => [
-                'minicart' => $this->config->flag('general/show_minicart', $storeId),
-                'cart' => $this->config->flag('general/show_cart', $storeId),
-                'product' => $this->config->flag('general/show_product', $storeId),
+            [
+                'messages' => [
+                    'progress' => $this->config->value('messages/progress_message', $storeId),
+                    'success' => $this->config->value('messages/success_message', $storeId),
+                    'empty' => $this->config->value('messages/empty_message', $storeId),
+                ],
+                'bar_color' => $this->config->getBarColor($storeId),
+                'show_bar' => $this->config->flag('appearance/show_bar', $storeId),
+                'show_percent' => $this->config->flag('appearance/show_percent', $storeId),
+                'positions' => [
+                    'minicart' => $this->config->flag('general/show_minicart', $storeId),
+                    'cart' => $this->config->flag('general/show_cart', $storeId),
+                    'product' => $this->config->flag('general/show_product', $storeId),
+                ],
             ],
-        ];
+            function (float $baseAmount) use ($store): string {
+                return $this->format($baseAmount, $store);
+            }
+        );
     }
 
     /**
