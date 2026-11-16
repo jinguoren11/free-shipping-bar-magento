@@ -61,3 +61,11 @@ phpcs --standard=Magento2 --extensions=php,phtml --error-severity=10 --ignore-an
 phpcs --standard=Magento2 --extensions=php,phtml app/code/GetDropFlow/FreeShippingBar
 ```
 **预期结果**：severity≥10 的 Error 为 0（有任何 Error 就会被 Marketplace 拒）。请把 `report.json` 和警告输出原文贴回 `docs/TEST-REPORTS.md`。
+
+---
+## TR-003 ｜ 状态：待派单（可与 TR-001 同一次完成）｜ 教程截图
+
+**包的位置**：同 TR-001。
+**要拍的图**：见 `docs/user-guide/客户教程.zh.md` 末尾"截图清单"（01–08、E1，共 9 组）。
+**规则**：红框用红色矩形 #FF0000、线宽 3px；不要带网址栏和浏览器边框；PNG，每张 <5MB；文件放到 `docs/user-guide/images/`，文件名用清单里的名字加后缀（如 `01-overview.png`、`07-es.png`、`08-zh.png`、`E1.png`）。
+**预期**：每张图一眼能看出红框里的内容；英文界面为主，07/08 为西/中。
