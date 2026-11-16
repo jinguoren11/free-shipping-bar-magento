@@ -80,6 +80,11 @@
                 <field id="more_tools" translate="label" type="label" sortOrder="20" showInDefault="1">
                     <frontend_model>GetDropFlow\FreeShippingBar\Block\Adminhtml\System\Config\MoreTools</frontend_model>
                 </field>
+                <!-- CHANNEL:direct-begin -->
+                <field id="star_link" translate="label" type="label" sortOrder="30" showInDefault="1">
+                    <frontend_model>GetDropFlow\FreeShippingBar\Block\Adminhtml\System\Config\StarLink</frontend_model>
+                </field>
+                <!-- CHANNEL:direct-end -->
             </group>
         </section>
     </system>

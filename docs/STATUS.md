@@ -1,6 +1,6 @@
 # STATUS — 云端电脑D（Free Shipping Progress Bar，Magento 2 免费插件）
 
-**最后更新**：2026-11-16（第 6 阶段：一键升级 + 双渠道，设计完成，开始实现阶段 1）　**分支**：`claude/magento-free-shipping-bar-mqm0n2`　**仓库**：jinguoren11/free-shipping-bar-magento
+**最后更新**：2026-11-16（第 6 阶段：一键升级 + 双渠道；下载分流改为 GitHub Releases）　**分支**：`claude/magento-free-shipping-bar-mqm0n2`　**仓库**：jinguoren11/free-shipping-bar-magento
 
 ## 当前阶段
 **新铁规矩：每个插件必须一键升级。** 设计已写 `docs/05-一键升级与双渠道设计.md`；**阶段 1 已完成**（渠道构建开关、签名校验、zip 安全检查）；下一步阶段 2（升级引擎）。实机待办：TR-001/002/003（待派单）；TR-004/005（升级成功/失败退回）要等阶段 2–3 实现后才能派单。读过 `docs/OWNER-DECISIONS.md`：**仍不存在**；读过 `docs/TEST-REPORTS.md`：无报告。
@@ -17,7 +17,7 @@
 - ✅ 插件内推广规则研究 + 静态"更多工具"后台面板（无联网，可关）→ `docs/04-…md`
 
 ## 下一步
-0. **一键升级**（见 `docs/05-…md` 第 6 节）：~~阶段1~~ 完成 → 阶段2 升级引擎+预检 → 阶段3 设置页升级卡片 → 阶段4 实机 TR-004/005
+0. **一键升级**（见 `docs/05-…md` 第 6 节）：~~阶段1~~ 完成 → 阶段2 升级引擎+预检+读 GitHub Releases（缓存） → 阶段3 设置页升级卡片 → 阶段4 实机 TR-004/005
 1. 等 TR-001/002/003 结果，按报告修问题并更新下面"问题清单"
 2. 截图回来后放进 `docs/user-guide/images/`，重新生成正式 PDF（去掉 DRAFT）
 3. 手册内容在实测后复核：缓存/Varnish、小购物车位置、切换商店视图等说法必须以实测为准，不符就改手册
@@ -33,7 +33,10 @@
 
 ## 说明
 - 升级公钥 `Model/Upgrade/ReleaseKey.php` 现在是**空的**（等批准项 D）：在那之前一键升级自动保持关闭，不会访问任何地址。
-- README 里的官网下载地址 `getdropflow.com/downloads/free-shipping-bar/` 是我按设计假定的，请总管/老任确认实际页面地址。
+- README 的下载指向 GitHub Releases；官网页面（说明/下载页）规格见 `docs/05-…md` 第 7 节，仓库公开前不上线。
+- `ProjectLinks::PUBLISHED=false`：设置页"点星"行默认不出现，仓库公开后改 true 再发版。
+- 新脚本 `build/release-assets.sh`：生成 Release 要附的文件（zip、固定名 zip、签名 manifest.json、说明），只生成不上传。
+- Marketplace 包用单独的无推广 README（`README.marketplace.md`）。
 - 直接版 zip 里是 `FreeShippingBar/` 一个文件夹（解压到 `app/code/GetDropFlow/`）；Marketplace 版是 Composer 包（文件在 zip 根）。
 
 ## 问题清单
@@ -46,11 +49,11 @@
 > 读过 `docs/OWNER-DECISIONS.md`：**文件还不存在**（2026-11-16）。
 
 ### 待批准（新增）
-**D. 升级签名密钥与官网发布（涉及密钥和动 getdropflow.com）**
-- 要批准什么：①生成升级用的 Ed25519 签名密钥对，私钥由老任/总管保管、不进仓库；②把 `latest.json` 和升级 zip 发布到 `getdropflow.com/downloads/free-shipping-bar/`（我只产出文件和部署说明，不碰官网）。
-- 为什么：静态文件没有授权服务器，必须靠签名防止被篡改后给所有商家推送恶意代码；发布到官网是对外动作。
+**D. 升级签名密钥与 GitHub Release 发布（涉及密钥和对外发布）**
+- 要批准什么：①生成升级用的 Ed25519 签名密钥对，私钥由老任/总管保管、不进仓库；②发布 GitHub Release（附 zip、固定名 zip、`manifest.json`、说明）。我只用 `build/release-assets.sh` 产出文件，不上传、不发布。
+- 为什么：没有授权服务器，必须靠签名防止附件或账号被动过后给所有商家推送恶意代码；发布 Release 是对外动作。
 - 选项：①总管用我提供的脚本生成密钥，私钥放总管指定的安全位置，部署由总管/老任做（**建议**）②老任自己生成 ③先只做开发和测试（用本地测试版本信息），上线前再批。
-- 我的建议：③ 现在开始，① 在阶段 4 通过实机测试之后、正式发布之前批。不批准则不会有任何插件去访问正式站的升级文件。
+- 我的建议：③ 现在开始，① 在阶段 4 通过实机测试之后、正式发布之前批。不批准则公钥保持为空，升级功能关闭。
 
 ### 待批准
 **A.（已由老任在对话中选 2，待总管记录）"更多工具"面板在 Marketplace 版里默认开还是关（涉及 Adobe 15% 服务费条款）**
@@ -68,10 +71,16 @@
 **C.（未来）正式提交 Marketplace 审核**
 - 这是对外发布动作，需要老任在 Developer Portal 里自己操作或明确批准；账号资料（PayPal 等）由老任自己填，我不碰。条件：TR-001/002/003 通过、PDF 正式版就绪。目前不涉及，仅提前记录。
 
+**E. 仓库转公开（只由老任批准；我不改可见性）**
+- 要批准什么：把 `jinguoren11/free-shipping-bar-magento` 从私有改为公开。
+- 为什么：一键升级读 GitHub Releases 公开接口，**仓库私有时匿名读不到**；官网下载页和设置页点星链接也要等公开才能上线。
+- 前置条件（建议）：TR-001/002/003 通过；TR-004/005 通过；仓库内容复查（无密钥/内部信息，已核对插件代码里没有老任地址等）；README 定稿。
+- 选项：①通过后公开 ②先开测试版公开仓库再…（不建议）。我的建议：①，且在公开前由总管跑一遍"仓库公开前检查"。
+
 ### 老任已在对话中直接给出、**尚待总管抄进 OWNER-DECISIONS.md 确认**的决定
 0. **A 选 2**：Marketplace 版"更多工具"面板默认关（无推广版）上架；GitHub/官网下载版默认开。
 0. **铁规矩（一键升级）**：direct 版做设置页升级卡片（备份→升级→失败自动退回，沿用 GetDropFlow 做法，版本信息和升级包放 getdropflow.com 公开静态文件、不需要授权服务器）；Marketplace 版不带自己下载代码的功能，靠 Adobe 更新，手册写明；两个版本同一份代码、一个开关区分渠道。
-0. **下载分流**：GitHub README 放 getdropflow.com 的下载链接，主下载放官网。
+0. **下载分流（最新，取代"主下载放官网"）**：主下载放 **GitHub Releases**（每个版本附 zip），官网不另存下载，只放说明/下载页，下载按钮直接指向 Releases 里 zip 的下载地址（浏览器直接下载）；官网下载页和插件设置页底部各放一个"在 GitHub 上点星"链接，**仓库公开前不上线**；引流写在 README 和 Releases 说明里（"更多功能见 GetDropFlow（getdropflow.com）"+ 请点星）；一键升级卡片读 **GitHub Releases 公开信息（缓存）**，仍然备份、出错自动退回；**仓库先保持私有，做好测试后由老任批准再公开，我不改仓库可见性**；Marketplace 版规则不变（无推广版、无自己下载代码的功能）。
 1. 保守引流：前台无广告；后台设置页底部一行作者信息 + 静态"更多工具"面板（带开关、不联网）；上架描述不推广；推广靠开发者资料网址 + GitHub README
 2. Vendor Name = GetDropFlow
 3. 欧盟 trader 公开信息（名称/邮箱/地址，见下方"上架信息"），老任已同意公开显示

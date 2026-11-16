@@ -28,6 +28,8 @@ find "$STAGE" -name '.DS_Store' -delete
 MOD="$STAGE/FreeShippingBar"
 
 if [ "$CHANNEL" = marketplace ]; then
+    # 0) promotion-free README for the Marketplace edition
+    cp README.marketplace.md "$MOD/README.md"
     # 1) remove direct-only files and blocks
     rm -rf "$MOD/Model/Upgrade"
     python3 -I - "$MOD" <<'PY'
@@ -41,6 +43,7 @@ for p in list(root.rglob('*.xml')) + list(root.rglob('*.phtml')):
         p.write_text(n, encoding='utf-8')
 # direct-only PHP/JS/templates are listed here (none yet) and removed:
 for rel in ['Block/Adminhtml/System/Config/UpgradeCard.php',
+            'Block/Adminhtml/System/Config/StarLink.php',
             'view/adminhtml/templates/upgrade-card.phtml',
             'view/adminhtml/web/js/upgrade-card.js']:
     f = root / rel
@@ -51,7 +54,7 @@ PY
     sed -i "s#const CURRENT = 'direct'; // CHANNEL-VALUE#const CURRENT = 'marketplace'; // CHANNEL-VALUE#" "$MOD/Model/Channel.php"
     sed -i 's#<show_more_tools>1</show_more_tools>#<show_more_tools>0</show_more_tools>#' "$MOD/etc/config.xml"
     # 3) the Marketplace edition must not contain anything that downloads, unpacks or runs code
-    if grep -rInE '(curl_|shell_exec|proc_open|popen|passthru|\bexec\s*\(|\bsystem\s*\(|ZipArchive|sodium_crypto_sign|getdropflow\.com/downloads|Model\\\\Upgrade|Upgrade\\\\)' \
+    if grep -rInE '(curl_|shell_exec|proc_open|popen|passthru|\bexec\s*\(|\bsystem\s*\(|ZipArchive|sodium_crypto_sign|api\.github\.com|releases/download|Model\\\\Upgrade|Upgrade\\\\)' \
         --include='*.php' --include='*.xml' --include='*.js' --include='*.phtml' --include='*.html' "$MOD"; then
         echo "ERROR: direct-only code found in the Marketplace edition (see above)." >&2
         exit 1

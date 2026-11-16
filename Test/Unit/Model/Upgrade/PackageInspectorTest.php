@@ -53,7 +53,7 @@ class PackageInspectorTest extends TestCase
 
     private function manifestFor(string $zip, string $version = '1.0.1'): ReleaseManifest
     {
-        return new ReleaseManifest($version, 'https://getdropflow.com/downloads/free-shipping-bar/x.zip', hash_file('sha256', $zip), (int) filesize($zip), null, []);
+        return new ReleaseManifest($version, 'https://github.com/jinguoren11/free-shipping-bar-magento/releases/download/v1.0.1/x.zip', hash_file('sha256', $zip), (int) filesize($zip), null, []);
     }
 
     private function assertRejected(string $reason, string $zip, ?ReleaseManifest $m = null): void

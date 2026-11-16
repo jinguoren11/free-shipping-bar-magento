@@ -29,7 +29,7 @@ class ReleaseManifestTest extends TestCase
         $data = $override + [
             'format' => 1,
             'version' => '1.0.1',
-            'url' => 'https://getdropflow.com/downloads/free-shipping-bar/x-1.0.1-direct.zip',
+            'url' => 'https://github.com/jinguoren11/free-shipping-bar-magento/releases/download/v1.0.1/x-1.0.1-direct.zip',
             'sha256' => str_repeat('a', 64),
             'bytes' => 12345,
             'min_from' => '1.0.0',
@@ -75,7 +75,7 @@ class ReleaseManifestTest extends TestCase
     public function testAnyChangedFieldBreaksTheSignature(): void
     {
         $data = json_decode($this->signed(), true);
-        foreach (['version' => '9.9.9', 'sha256' => str_repeat('b', 64), 'bytes' => 1, 'url' => 'https://getdropflow.com/downloads/free-shipping-bar/evil.zip'] as $k => $v) {
+        foreach (['version' => '9.9.9', 'sha256' => str_repeat('b', 64), 'bytes' => 1, 'url' => 'https://github.com/jinguoren11/free-shipping-bar-magento/releases/download/v1.0.1/evil.zip'] as $k => $v) {
             $copy = $data;
             $copy[$k] = $v;
             $this->assertRejected('BAD_SIGNATURE', function () use ($copy) {
@@ -87,13 +87,13 @@ class ReleaseManifestTest extends TestCase
     public function testDownloadMustComeFromTheAllowedAddress(): void
     {
         $this->assertRejected('BAD_URL', function () {
-            ReleaseManifest::parse($this->signed(['url' => 'https://evil.example/free-shipping-bar/x.zip']), $this->public);
+            ReleaseManifest::parse($this->signed(['url' => 'https://github.com/someone-else/other-repo/releases/download/v1/x.zip']), $this->public);
         });
         $this->assertRejected('BAD_URL', function () {
-            ReleaseManifest::parse($this->signed(['url' => 'http://getdropflow.com/downloads/free-shipping-bar/x.zip']), $this->public);
+            ReleaseManifest::parse($this->signed(['url' => 'http://github.com/jinguoren11/free-shipping-bar-magento/releases/download/v1/x.zip']), $this->public);
         });
         $this->assertRejected('BAD_URL', function () {
-            ReleaseManifest::parse($this->signed(['url' => 'https://getdropflow.com/downloads/free-shipping-bar/../../x.zip']), $this->public);
+            ReleaseManifest::parse($this->signed(['url' => 'https://github.com/jinguoren11/free-shipping-bar-magento/releases/download/../../x.zip']), $this->public);
         });
     }
 
@@ -123,5 +123,18 @@ class ReleaseManifestTest extends TestCase
         $this->assertFalse(ReleaseManifest::isNewer('1.0.0', '1.0.0'));
         $this->assertFalse(ReleaseManifest::isNewer('0.9.9', '1.0.0'));
         $this->assertFalse(ReleaseManifest::isNewer('1.0.1-evil', '1.0.0'));
+    }
+
+    public function testOtherRepositoriesAndLookalikeHostsAreRefused(): void
+    {
+        foreach ([
+            'https://github.com.evil.example/jinguoren11/free-shipping-bar-magento/releases/download/v1/x.zip',
+            'https://github.com/jinguoren11/free-shipping-bar-magento-evil/releases/download/v1/x.zip',
+            'https://raw.githubusercontent.com/jinguoren11/free-shipping-bar-magento/main/x.zip',
+        ] as $url) {
+            $this->assertRejected('BAD_URL', function () use ($url) {
+                ReleaseManifest::parse($this->signed(['url' => $url]), $this->public);
+            });
+        }
     }
 }

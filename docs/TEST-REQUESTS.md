@@ -77,4 +77,4 @@ phpcs --standard=Magento2 --extensions=php,phtml app/code/GetDropFlow/FreeShippi
 **TR-005 失败自动退回**（各做一次）：①包被篡改（sha256 不符）②latest.json 签名不对 ③坏包（换文件后编译失败）④升级中途 `kill` 后台进程。预期：全部退回 1.0.0，站点可正常访问，卡片显示原因，维护模式已退出；无法退回时保持维护模式并显示恢复命令。
 **预检**：目录不可写 / Composer 安装的实例 → 按钮置灰 + 原因。
 **Marketplace 版**：包内无升级相关文件、设置页无升级卡片。
-**环境要求**：ASUS 的预览站要能在后台进程里执行 `bin/magento`（php-cli 可用），`app/code` 目录对 Web/CLI 用户可写；需要本地 HTTP 服务放测试 latest.json（仅 127.0.0.1 / localhost 允许非 https，供测试）。
+**环境要求**：ASUS 的预览站要能在后台进程里执行 `bin/magento`（php-cli 可用），`app/code` 目录对 Web/CLI 用户可写；需要在预览站本机起一个本地 HTTP 测试服务（仅 127.0.0.1 / localhost 允许非 https，供测试）。
