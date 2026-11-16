@@ -1,9 +1,34 @@
 # STATUS — 云端电脑D（Free Shipping Progress Bar，Magento 2 免费插件）
 
-**最后更新**：2026-11-16　**P1 修复提交：`ceb052cd`（请 ASUS 用它重装）**　（第 6 阶段：一键升级 + 双渠道；下载分流改为 GitHub Releases）　**分支**：`claude/magento-free-shipping-bar-mqm0n2`　**仓库**：jinguoren11/free-shipping-bar-magento
+**最后更新**：2026-11-16　**P1 修复提交：`ceb052cd`；主题兼容提交：`f9484aa`（请 ASUS 用最新提交重装并按 TR-001/006 测）**　（第 6 阶段：一键升级 + 双渠道；下载分流改为 GitHub Releases）　**分支**：`claude/magento-free-shipping-bar-mqm0n2`　**仓库**：jinguoren11/free-shipping-bar-magento
 
 ## 当前阶段
 **新铁规矩：每个插件必须一键升级。** 设计已写 `docs/05-一键升级与双渠道设计.md`；**阶段 1 已完成**（渠道构建开关、签名校验、zip 安全检查）；下一步阶段 2（升级引擎）。实机待办：TR-001/002/003（待派单）；TR-004/005（升级成功/失败退回）要等阶段 2–3 实现后才能派单。已读 `from-a:docs/FROM-A/001-owner-decisions.md` 和 README；读过 `docs/TEST-REPORTS.md`：无报告。
+
+## 主题兼容（总管 004）完成，提交 `f9484aa`
+- **挂载不依赖主题**：标准布局位置 + 后台 *Theme Compatibility*（购物车页/商品页/小购物车各一个自定义 CSS 选择器 + 相对位置）；找不到元素 → 什么都不显示，不报 JS 错；选择器服务端清洗（拒 `<>{};` 反斜杠、限长）
+- **样式**：全部 class 改为 `gdf-fsb-*`；文字颜色/字体继承主题（只有进度条颜色来自设置）；窄屏规则
+- **Hyvä 兼容包** `Compat/Hyva`（`GetDropFlow_FreeShippingBarHyva`，Alpine.js，无 Knockout/RequireJS）：`hyva_*` 布局句柄替换 Luma 块；空车状态预渲染进页面（Hyvä 对无会话访客只给空默认数据）；单独打包 `./build/package.sh --module=hyva`（direct / marketplace 各一个包）
+- **文档**：`docs/THEMES.md`（中英，给客户）；用户手册和中文教程已加主题段；测试需求 TR-006
+- **测试**：PHP 50 项 + JS 行为测试（`node Test/js/hyva-bar.test.js`，已验证改坏逻辑会变红）全过
+- **没有实测过任何主题**；THEMES.md 里除 Luma 数据文字外全部标"尚未测试"
+
+### 必须实测的主题清单（请总管派 ASUS；细节见 TR-006）
+1. **Luma（默认）**——P1 修复后第一次验证三处位置
+2. **Blank**
+3. **Hyvä 默认**（主包 + Hyvä 兼容包）
+4. **Hyvä CSP 版**（`Hyva/default-csp`，看 CSP 报错）
+5. **Luma 子主题**（改过头部/小购物车）
+6. **第三方 Luma 系主题 1–2 个**（总管挑当时能免费装的；用来验"自定义位置"）
+每个主题查：三处位置、空车首访、360/768px、颜色字体继承、自定义位置（存在/不存在/非法选择器）、控制台无报错。
+
+### Hyvä 兼容包里**我无法在云端验证、需要实测确认**的点
+- Hyvä 的商品页是否有 `product.info.main` / `product.info.price`，购物车页是否有 `content` 容器（我按 Magento 标准名写的）
+- `hyva_checkout_cart_index` / `hyva_catalog_product_view` 里 `referenceBlock remove` 是否确实去掉 Luma 块
+- Hyvä 的 `/customer/section/load` 是否带上我们的 `free-shipping-bar` 区块（理论上全部区块都返回）
+- CSP 版：外部脚本 + 仅属性/方法名的指令是否被接受
+- **Hyvä 小购物车（抽屉）没有自动挂载点**（文档没查到）：目前只能用"小购物车：自定义位置"；若总管要求自动，需要实测后选挂载点
+- 查 Hyvä 文档需要，我给环境放行了 `docs.hyva.io`（只读文档，已记入环境备注）
 
 ## 已完成
 - ✅ 官方上架规则研究 → `docs/01-上架规则一页纸.md`
@@ -18,6 +43,7 @@
 - ✅ 插件内推广规则研究 + 静态"更多工具"后台面板（无联网，可关）→ `docs/04-…md`
 
 ## 下一步
+00. 等 ASUS 用最新提交测 TR-001/006（P1 修复后第一次验证位置）；**一键升级阶段 2 要同时覆盖主包和 Hyvä 兼容包**（铁规矩）
 0. **一键升级**（见 `docs/05-…md` 第 6 节）：~~阶段1~~ 完成 → 阶段2 升级引擎+预检+读 GitHub Releases（缓存） → 阶段3 设置页升级卡片 → 阶段4 实机 TR-004/005
 1. 等 TR-001/002/003 结果，按报告修问题并更新下面"问题清单"
 2. 截图回来后放进 `docs/user-guide/images/`，重新生成正式 PDF（去掉 DRAFT）
@@ -106,5 +132,5 @@
 注：这些信息由老任在账号里填写；我这边没有账号权限，不会代填。
 
 ## 环境备注
-- 云端环境 `free-shipping-bar-magento` 额外放行了：developer.adobe.com、experienceleague.adobe.com、commercemarketplace.adobe.com、www.adobe.com（只为读官方文档）
+- 云端环境 `free-shipping-bar-magento` 额外放行了：developer.adobe.com、experienceleague.adobe.com、commercemarketplace.adobe.com、www.adobe.com、docs.hyva.io（只为读官方文档）
 - 本会话把 `jinguoren11/dropshipkit` 加入了**只读**范围，只读过它的 README，未改任何文件
