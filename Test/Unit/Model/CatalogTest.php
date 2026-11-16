@@ -31,7 +31,7 @@ class CatalogTest extends TestCase
         $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root, \FilesystemIterator::SKIP_DOTS));
         foreach ($files as $file) {
             $path = $file->getPathname();
-            if (!preg_match('/\.(php|js|phtml)$/', $path) || preg_match('#/(Test|vendor|dist|\.git)/#', $path)) {
+            if (!preg_match('/\.(php|js|phtml)$/', $path) || preg_match('#/(Test|vendor|dist|\.git|Upgrade)/#', $path)) {
                 continue;
             }
             $code = (string) file_get_contents($path);

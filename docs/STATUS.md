@@ -3,7 +3,7 @@
 **最后更新**：2026-11-16（第 6 阶段：一键升级 + 双渠道，设计完成，开始实现阶段 1）　**分支**：`claude/magento-free-shipping-bar-mqm0n2`　**仓库**：jinguoren11/free-shipping-bar-magento
 
 ## 当前阶段
-**新铁规矩：每个插件必须一键升级。** 设计已写 `docs/05-一键升级与双渠道设计.md`；正在做阶段 1（渠道构建开关、签名校验、zip 安全检查）。实机待办：TR-001/002/003（待派单）；TR-004/005（升级成功/失败退回）要等阶段 2–3 实现后才能派单。读过 `docs/OWNER-DECISIONS.md`：**仍不存在**；读过 `docs/TEST-REPORTS.md`：无报告。
+**新铁规矩：每个插件必须一键升级。** 设计已写 `docs/05-一键升级与双渠道设计.md`；**阶段 1 已完成**（渠道构建开关、签名校验、zip 安全检查）；下一步阶段 2（升级引擎）。实机待办：TR-001/002/003（待派单）；TR-004/005（升级成功/失败退回）要等阶段 2–3 实现后才能派单。读过 `docs/OWNER-DECISIONS.md`：**仍不存在**；读过 `docs/TEST-REPORTS.md`：无报告。
 
 ## 已完成
 - ✅ 官方上架规则研究 → `docs/01-上架规则一页纸.md`
@@ -13,10 +13,11 @@
 - ✅ 单元测试 16 项全过（计算、文案、"更多工具"目录、禁止联网代码扫描）
 - ✅ 客户教程（中文）`docs/user-guide/客户教程.zh.md`（含报错说明、截图清单）；用户手册英文稿 `docs/user-guide/USER-GUIDE.en.md`；PDF 生成脚本 `build/build-guide-pdf.sh`（缺截图时输出 *-DRAFT.pdf，禁止上传）
 - ✅ 老任已决定：保守引流（前台无广告；后台一行作者+静态"更多工具"面板可关；上架描述不推广；靠开发者资料网址+GitHub README）；Vendor Name 用 GetDropFlow
+- ✅ 一键升级阶段 1：`build/package.sh --channel=marketplace|direct` 两个包（Marketplace 包里无任何升级文件且自动扫描通过、"更多工具"默认关）；`ReleaseManifest`（Ed25519 签名+字段+下载地址白名单+版本比较）；`PackageInspector`（大小/sha256/zip 路径安全/版本一致）；`build/sign-release.php`（生成密钥、签名 latest.json）；单测共 30 项全过，并用临时密钥端到端验证过
 - ✅ 插件内推广规则研究 + 静态"更多工具"后台面板（无联网，可关）→ `docs/04-…md`
 
 ## 下一步
-0. **一键升级**（见 `docs/05-…md` 第 6 节）：阶段1 渠道构建+签名校验+zip检查+单测 → 阶段2 升级引擎+预检 → 阶段3 设置页升级卡片 → 阶段4 实机 TR-004/005
+0. **一键升级**（见 `docs/05-…md` 第 6 节）：~~阶段1~~ 完成 → 阶段2 升级引擎+预检 → 阶段3 设置页升级卡片 → 阶段4 实机 TR-004/005
 1. 等 TR-001/002/003 结果，按报告修问题并更新下面"问题清单"
 2. 截图回来后放进 `docs/user-guide/images/`，重新生成正式 PDF（去掉 DRAFT）
 3. 手册内容在实测后复核：缓存/Varnish、小购物车位置、切换商店视图等说法必须以实测为准，不符就改手册
@@ -29,6 +30,11 @@
 - ❗ phpcs 还没跑（TR-002 待派单）。我只做了语法检查和人工对照常见规则，不能算通过
 - 切换商店视图后旧语言残留：用 `store` Cookie + `<html lang>` 比对来刷新，需在 TR-001 #9 实测
 - 门槛按"优惠后小计"比较（和 Magento Free Shipping 同口径）；含税/不含税设置、"仅限某些国家"的免运费、购物车价格规则里的"免运费"**不读取**（README 已写明，需要的话后续版本再做）
+
+## 说明
+- 升级公钥 `Model/Upgrade/ReleaseKey.php` 现在是**空的**（等批准项 D）：在那之前一键升级自动保持关闭，不会访问任何地址。
+- README 里的官网下载地址 `getdropflow.com/downloads/free-shipping-bar/` 是我按设计假定的，请总管/老任确认实际页面地址。
+- 直接版 zip 里是 `FreeShippingBar/` 一个文件夹（解压到 `app/code/GetDropFlow/`）；Marketplace 版是 Composer 包（文件在 zip 根）。
 
 ## 问题清单
 | # | 问题 | 状态 |

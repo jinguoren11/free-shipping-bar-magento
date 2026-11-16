@@ -12,6 +12,11 @@ Show customers how close they are to **free shipping** — in the mini cart, on 
 - Multi-currency and multi-store-view aware; texts are translated (English, Spanish, Chinese included) and can be overridden per store view.
 - Read-only: never touches orders, payments, prices or shipping calculation. No tracking, no external requests.
 
+## Download
+- **Main download (recommended): https://getdropflow.com/downloads/free-shipping-bar/** — the edition with one-click upgrade.
+- Adobe Commerce Marketplace edition: install with Composer (updates come from Adobe).
+- Source code: this repository (MIT).
+
 ## Install
 ```
 composer require getdropflow/module-free-shipping-bar
@@ -21,6 +26,10 @@ bin/magento setup:di:compile
 bin/magento setup:static-content:deploy -f
 bin/magento cache:flush
 ```
+
+### Upgrading
+- **Website / GitHub edition**: Stores > Configuration > Sales > Free Shipping Progress Bar > "Check for updates" > one click. It backs up the old version, upgrades, and puts everything back automatically if anything goes wrong. It only contacts getdropflow.com when you press "Check for updates", sends no store data, and has no background jobs. (Coming in the next release; the first install is manual.)
+- **Marketplace edition**: updates come through Adobe Commerce; the extension never downloads code by itself.
 
 ## Configure
 Stores > Configuration > Sales > **Free Shipping Progress Bar**.
