@@ -71,7 +71,15 @@
             </group>
             <group id="about" translate="label comment" type="text" sortOrder="90" showInDefault="1">
                 <label>About</label>
-                <comment><![CDATA[Free and open source (MIT). Made by GetDropFlow &mdash; <a href="https://getdropflow.com" target="_blank" rel="noopener">getdropflow.com</a>]]></comment>
+                <comment><![CDATA[Free and open source (MIT). Made by GetDropFlow &mdash; <a href="https://getdropflow.com" target="_blank" rel="noopener noreferrer">getdropflow.com</a>]]></comment>
+                <field id="show_more_tools" translate="label comment" type="select" sortOrder="10" showInDefault="1">
+                    <label>Show "More tools" Panel</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>A small static list of the author's other tools. It makes no network requests and collects no data.</comment>
+                </field>
+                <field id="more_tools" translate="label" type="label" sortOrder="20" showInDefault="1">
+                    <frontend_model>GetDropFlow\FreeShippingBar\Block\Adminhtml\System\Config\MoreTools</frontend_model>
+                </field>
             </group>
         </section>
     </system>

@@ -16,6 +16,9 @@
                 <show_bar>1</show_bar>
                 <show_percent>0</show_percent>
             </appearance>
+            <about>
+                <show_more_tools>1</show_more_tools>
+            </about>
         </getdropflow_fsb>
     </default>
 </config>
