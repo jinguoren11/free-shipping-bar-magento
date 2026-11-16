@@ -30,7 +30,7 @@ For the automatic threshold, enable Stores > Configuration > Sales > Delivery Me
 Magento Open Source / Adobe Commerce 2.4.x, PHP 8.1+.
 
 ## Tests
-`composer install --no-plugins` is not needed for the unit tests; with PHPUnit installed run `phpunit` in this folder.
+Unit tests need only PHPUnit 10 (no Magento): `FSB_AUTOLOAD=/path/to/vendor/autoload.php phpunit`.
 
 ## License
 MIT. Made by [GetDropFlow](https://getdropflow.com).
