@@ -34,12 +34,31 @@
 |---|---|---|
 | 1 | 云端无法运行 phpcs（网络限制，非代码问题） | 已转 TR-002 |
 
-## 需要老任批准 / 提供的事
-（已决定的：保守引流、Vendor Name=GetDropFlow。）
-1. ~~欧盟 trader 公开信息~~：老任已决定，见下方"上架信息"
-2. **"更多工具"名单**：其他插件的 名称/一句话/官网链接（现在只有 GetDropFlow 一项）；并确认 GetDropFlow 那句介绍准确
-3. 建议（非阻塞）：提交前确认一次 Master Terms 第 3 条（15% 服务费）是否影响后台推荐面板；退路 = `show_more_tools` 默认改 0
-4. 开发者账号 PayPal 邮箱（账号资料，我不碰）
+## 需要老任批准
+> 规则：我不在对话里直接问老任；总管拿到答复后写入 `docs/OWNER-DECISIONS.md`，我开工前读它。**没出现在那里的批准一律视为没有批准。**
+> 读过 `docs/OWNER-DECISIONS.md`：**文件还不存在**（2026-11-16）。
+
+### 待批准
+**A. "更多工具"面板在 Marketplace 版里默认开还是关（涉及 Adobe 15% 服务费条款）**
+- 要批准什么：提交 Marketplace 的版本里，`show_more_tools` 默认值。
+- 为什么：Master Terms 第 3 条——插件与 Marketplace 之外的服务"相关联"或"通过 Marketplace 营销"该服务，要把该服务总收入 15% 交给 Adobe。后台推荐收费的 GetDropFlow 可能被 Adobe 这样解读；官方没有判例。详见 `docs/04-…md`。
+- 选项：①默认开，提交后被问再关 ②**默认关（"无推广版"）上架，GitHub 版默认开** ③提交前先书面问 Adobe Marketplace 支持/律师，得到答复再定。
+- 我的建议：**③，答复前先按②准备**（只改 `etc/config.xml` 一行，风险最小）。
+- 不批准的后果：我默认按②处理 Marketplace 包。
+
+**B. "更多工具"名单和 GetDropFlow 介绍**
+- 要提供：其他插件的 名称 / 一句话 / 官网链接；确认 GetDropFlow 这句介绍准确、可对外："Magento 2 一件代发插件：导入速卖通商品、保持价格与库存同步、回传订单物流单号"（依据 dropshipkit README，该项目可能尚未发布）。
+- 选项：①按现句上线 ②老任改句 ③GetDropFlow 未发布前面板先不放它（面板为空则自动不显示）。
+- 我的建议：③ 或 ②（避免宣传未发布功能）。不答复则面板只留 GetDropFlow 现句。
+
+**C.（未来）正式提交 Marketplace 审核**
+- 这是对外发布动作，需要老任在 Developer Portal 里自己操作或明确批准；账号资料（PayPal 等）由老任自己填，我不碰。条件：TR-001/002/003 通过、PDF 正式版就绪。目前不涉及，仅提前记录。
+
+### 老任已在对话中直接给出、**尚待总管抄进 OWNER-DECISIONS.md 确认**的决定
+1. 保守引流：前台无广告；后台设置页底部一行作者信息 + 静态"更多工具"面板（带开关、不联网）；上架描述不推广；推广靠开发者资料网址 + GitHub README
+2. Vendor Name = GetDropFlow
+3. 欧盟 trader 公开信息（名称/邮箱/地址，见下方"上架信息"），老任已同意公开显示
+（在 OWNER-DECISIONS.md 里确认之前，我只用它们做文档和准备工作，不做任何对外动作。）
 
 ## 上架信息（只在 Marketplace 上架表单和插件页使用；**不写进插件代码**）
 **欧盟 trader（Developer Portal 个人资料 → Trader information，会公开显示在欧盟用户看到的插件页上；老任已知并同意，与 getdropflow.com 条款页公开信息一致）**
