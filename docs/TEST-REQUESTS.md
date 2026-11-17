@@ -148,3 +148,14 @@ phpcs --standard=Magento2 --extensions=php,phtml app/code/GetDropFlow/FreeShippi
 | 7 | 自定义位置兜底：填 `#maincontent`，相对位置"之前" | 条出现在该位置 |
 | 8 | 与 Hyvä/Luma 无关的回归：同一站点换回 Luma 主题 | 仍正常（Breeze 专用布局不影响 Luma） |
 **回传**：每项 通过/未通过、控制台原文、截图。预期在 Breeze 上"可能能用也可能不能用"，请据实报告。
+
+---
+## TR-010 ｜ 状态：待派单 ｜ 复测 C1b（迷你购物车被主题移进 `.header.links`）
+
+**包的位置**：同分支最新提交（见 docs/STATUS.md 顶部）。**环境**：ASUS 的 fsb247 上保留的子主题 `Test/lumachild`（把迷你购物车移到 `.header.links`，该容器 `font-size: 0`）。
+| # | 检查 | 预期 |
+|---|---|---|
+| 1 | 购物车里有商品，打开小购物车 | 进度条可见，文字约 14px、完整显示，不是 2px 高的一条线 |
+| 2 | 同一子主题的购物车页、商品页 | 仍正常 |
+| 3 | Luma、Blank、Hyvä 回归（小购物车/抽屉） | 字号和之前一致，无异常 |
+| 4 | phpcs 再跑 | 错误 0；警告数请记录（本次只处理了 bar.css 的命名颜色，其余注释/静态函数类警告需要清单才能逐条处理） |
