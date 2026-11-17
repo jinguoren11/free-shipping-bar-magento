@@ -1,6 +1,8 @@
 /*
  * Free Shipping Progress Bar. Every class starts with gdf-fsb- so it cannot clash with a theme.
- * Text color, font and size are inherited from the theme; only the bar color comes from the module settings.
+ * Font and size are inherited from the theme. The bar has its own light card colors, so the text stays readable
+ * on any page (a dark header would otherwise pass on white text to a white panel). A theme or shop owner can
+ * change them with the CSS variables --gdf-fsb-text, --gdf-fsb-bg and --gdf-fsb-done-bg.
  */
 .gdf-fsb-mount { display: block; max-width: 100%; box-sizing: border-box; }
 .gdf-fsb-bar {
@@ -10,8 +12,8 @@
     padding: .6em .8em;
     border: 1px solid rgba(128, 128, 128, .4);
     border-radius: .3em;
-    background: transparent;
-    color: inherit;
+    background: var(--gdf-fsb-bg, #fff);
+    color: var(--gdf-fsb-text, #222);
     font: inherit;
     line-height: 1.4;
     text-align: center;
@@ -22,6 +24,7 @@
 .gdf-fsb-message { display: block; overflow-wrap: anywhere; word-break: break-word; }
 .gdf-fsb-track { height: .55em; margin-top: .55em; border-radius: .3em; background: rgba(128, 128, 128, .25); overflow: hidden; }
 .gdf-fsb-fill { height: 100%; border-radius: .3em; transition: width .4s ease; }
+.gdf-fsb-bar--done { background: var(--gdf-fsb-done-bg, #f3faf3); }
 .gdf-fsb-percent { display: block; margin-top: .3em; font-size: .85em; opacity: .75; }
 [dir="rtl"] .gdf-fsb-fill { float: right; }
 @media (max-width: 480px) {

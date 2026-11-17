@@ -15,7 +15,8 @@ function observable(initial) {
 const ko = {observable, pureComputed: (fn) => () => fn()};
 let sectionObs = observable(null);
 const reloads = [];
-const customerData = {get: () => sectionObs, reload: (names) => reloads.push(names)};
+let cartObs = observable(null);
+const customerData = {get: (name) => (name === 'cart' ? cartObs : sectionObs), reload: (names) => reloads.push(names)};
 const $ = {mage: {cookies: {get: () => null}}};
 const Component = {extend: (proto) => {
     const defaults = proto.defaults || {};
@@ -29,7 +30,7 @@ const timers = [];
 const docState = {target: null, mount: null};
 const sandbox = {
     define: (deps, factory) => { sandbox.exported = factory(Component, $, ko, customerData); },
-    window: {setTimeout: (fn) => { timers.push(fn); return timers.length; }},
+    window: {setTimeout: (fn) => { timers.push(fn); return timers.length; }, clearTimeout: (id) => { if (id) { timers[id - 1] = () => {}; } }},
     document: {
         documentElement: {getAttribute: () => 'en'},
         querySelector: (sel) => (sel.indexOf('data-gdf-mount') >= 0 ? docState.mount : docState.target)
@@ -96,5 +97,21 @@ reloads.length = 0;
 sandbox.document.querySelector = () => null;
 make('cart', 'page', Object.assign({}, base, {lang: 'es'}));
 assert.ok(reloads.length > 0);
+
+// R1: whenever Magento's own cart section changes (Reorder, wishlist, multi shipping ...), our section is reloaded
+reloads.length = 0; timers.length = 0;
+make('cart', 'page', base);
+cartObs({data_id: 1, summary_count: 2, subtotalAmount: 130});
+assert.strictEqual(timers.length > 0, true, 'a reload is scheduled');
+timers[timers.length - 1]();
+assert.strictEqual(JSON.stringify(reloads[reloads.length - 1]), '["free-shipping-bar"]');
+// the same cart again does not cause another reload
+reloads.length = 0; timers.length = 0;
+cartObs({data_id: 1, summary_count: 2, subtotalAmount: 130});
+assert.strictEqual(timers.length, 0);
+// a changed cart does
+cartObs({data_id: 2, summary_count: 3, subtotalAmount: 180});
+timers[timers.length - 1]();
+assert.strictEqual(JSON.stringify(reloads[reloads.length - 1]), '["free-shipping-bar"]');
 
 console.log('luma bar.js: all checks passed');

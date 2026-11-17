@@ -6,8 +6,9 @@
  * @var \Magento\Framework\Escaper $escaper
  */
 ?>
-<?php $scope = $escaper->escapeHtmlAttr($block->getScopeName()); ?>
-<div class="gdf-fsb-mount" data-gdf-mount="<?= $scope ?>" data-bind="scope: '<?= $scope ?>'">
+<div class="gdf-fsb-mount"
+     data-gdf-mount="<?= $escaper->escapeHtmlAttr($block->getScopeName()) ?>"
+     data-bind="scope: '<?= $escaper->escapeHtmlAttr($block->getScopeName()) ?>'">
     <!-- ko template: getTemplate() --><!-- /ko -->
 </div>
 <script type="text/x-magento-init"><?= /* @noEscape */ $block->getInitJson() ?></script>

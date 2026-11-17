@@ -7,6 +7,12 @@
     <action name="checkout/cart/couponPost"><section name="free-shipping-bar"/></action>
     <action name="checkout/sidebar/removeItem"><section name="free-shipping-bar"/></action>
     <action name="checkout/sidebar/updateItemQty"><section name="free-shipping-bar"/></action>
+    <action name="sales/order/reorder"><section name="free-shipping-bar"/></action>
+    <action name="sales/guest/reorder"><section name="free-shipping-bar"/></action>
+    <action name="multishipping/checkout/overviewPost"><section name="free-shipping-bar"/></action>
+    <action name="wishlist/index/cart"><section name="free-shipping-bar"/></action>
+    <action name="wishlist/index/allcart"><section name="free-shipping-bar"/></action>
+    <action name="checkout/cart/addgroup"><section name="free-shipping-bar"/></action>
     <action name="customer/account/loginPost"><section name="free-shipping-bar"/></action>
     <action name="customer/account/logout"><section name="free-shipping-bar"/></action>
 </config>

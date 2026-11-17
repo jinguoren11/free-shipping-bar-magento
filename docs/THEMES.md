@@ -35,7 +35,7 @@ The Hyvä package has no inline scripts and no inline Alpine expressions: the lo
 
 ### How it fits your theme
 - All style classes start with `gdf-fsb-`, so they do not clash with your theme.
-- Text color and font are **inherited from your theme**. Only the progress bar color comes from the module settings.
+- The font is **inherited from your theme**. The bar is a small light card with its own dark text, so it stays readable even in a dark header or a dark mini cart panel. The progress bar color comes from the module settings. Advanced: a theme can change the card colors with the CSS variables `--gdf-fsb-text`, `--gdf-fsb-bg` and `--gdf-fsb-done-bg`.
 - Works on narrow screens (phones); long texts wrap.
 - The bar needs JavaScript. With JavaScript turned off nothing is shown (and nothing breaks).
 
@@ -86,7 +86,7 @@ Hyvä 兼容包没有内联脚本、没有内联 Alpine 表达式：逻辑在一
 
 ### 它怎么适应你的主题
 - 所有样式类名都以 `gdf-fsb-` 开头，不会和主题冲突。
-- 文字颜色和字体**继承主题**，只有进度条的颜色来自模块设置。
+- 字体**继承主题**。进度条是一张自带深色文字的浅色小卡片，所以即使在深色页头或深色小购物车面板里也看得清；进度条颜色来自模块设置。进阶：主题可以用 CSS 变量 `--gdf-fsb-text`、`--gdf-fsb-bg`、`--gdf-fsb-done-bg` 改卡片颜色。
 - 窄屏（手机）可用，长文字自动换行。
 - 需要浏览器启用 JavaScript；关闭 JS 时什么都不显示（也不会出错）。
 

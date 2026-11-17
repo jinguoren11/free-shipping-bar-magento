@@ -12,12 +12,11 @@ $initialState = $block->getData('initial_state');
 $position = (string) $block->getData('position');
 $kind = (string) ($block->getData('kind') ?: 'page');
 ?>
-<?php
-$cssUrl = $escaper->escapeUrl($block->getViewFileUrl('GetDropFlow_FreeShippingBar::css/bar.css'));
-$jsUrl = $escaper->escapeUrl($block->getViewFileUrl('GetDropFlow_FreeShippingBarHyva::js/hyva-bar.js'));
-?>
-<link rel="stylesheet" href="<?= $cssUrl ?>">
-<script src="<?= $jsUrl ?>"></script>
+<link rel="stylesheet"
+      href="<?= $escaper->escapeUrl($block->getViewFileUrl('GetDropFlow_FreeShippingBar::css/bar.css')) ?>">
+<script src="<?= $escaper->escapeUrl(
+    $block->getViewFileUrl('GetDropFlow_FreeShippingBarHyva::js/hyva-bar.js')
+) ?>"></script>
 <div class="gdf-fsb-mount"
      data-gdf-mount="fsb_<?= $escaper->escapeHtmlAttr($position) ?>"
      data-position="<?= $escaper->escapeHtmlAttr($position) ?>"

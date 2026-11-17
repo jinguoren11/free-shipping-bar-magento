@@ -18,7 +18,36 @@ define([
 
     var SECTION = 'free-shipping-bar',
         MAX_TRIES = 40,
-        RETRY_MS = 500;
+        RETRY_MS = 500,
+        followingCart = false;
+
+    /**
+     * Magento refreshes its own "cart" section after every cart change, including the ones the sections.xml list
+     * of this module does not know (Reorder, wishlist, multi shipping, other extensions). Follow it, so the bar
+     * can never show the amount of an older cart.
+     */
+    function followCart() {
+        var timer = null,
+            lastId = null;
+
+        if (followingCart) {
+            return;
+        }
+        followingCart = true;
+        customerData.get('cart').subscribe(function (cart) {
+            var id = cart ? String(cart.data_id || '') + '|' + String(cart.summary_count || '') + '|' +
+                String(cart.subtotalAmount || '') : '';
+
+            if (id === lastId) {
+                return;
+            }
+            lastId = id;
+            window.clearTimeout(timer);
+            timer = window.setTimeout(function () {
+                customerData.reload([SECTION], false);
+            }, 200);
+        });
+    }
 
     return Component.extend({
         defaults: {
@@ -31,6 +60,7 @@ define([
         initialize: function () {
             this._super();
             this.bar = customerData.get(SECTION);
+            followCart();
             this.placed = ko.observable(false);
             this.isVisible = this.visibleComputed();
             this.refreshIfStale(this.bar());
