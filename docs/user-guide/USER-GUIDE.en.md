@@ -49,7 +49,7 @@ To uninstall: `bin/magento module:disable GetDropFlow_FreeShippingBar`, then `co
 
 ## Themes
 
-The bar works with Magento's standard themes (Luma, Blank) and themes built on them. All style classes start with `gdf-fsb-`; text color and font are inherited from your theme, and the layout adapts to narrow screens. If your theme shows the bar in the wrong place or not at all, set a **custom position** (section 4, *Theme Compatibility*). For **Hyvä** themes, install the separate compatibility package `getdropflow/module-free-shipping-bar-hyva` as well.
+The bar works with Magento's standard themes (Luma, Blank) and themes built on them. All style classes start with `gdf-fsb-`; text color and font are inherited from your theme, and the layout adapts to narrow screens. If your theme shows the bar in the wrong place or not at all, set a **custom position** (section 4, *Theme Compatibility*). For **Hyvä** themes you must install the separate compatibility package `getdropflow/module-free-shipping-bar-hyva` as well: without it the bar does not appear on a Hyvä store (no error is shown). On Hyvä the bar is shown on the cart page, on the product page (below the add-to-cart row) and in the cart drawer (above the items).
 
 # 3. Quick start (2 minutes)
 
@@ -140,7 +140,7 @@ Only needed if the bar does not appear where you want it with your theme.
 
 | Cart state | What the customer sees |
 |---|---|
-| Empty cart | "Free shipping on orders over $50.00" (no progress bar) |
+| Empty cart | Cart page and product page: "Free shipping on orders over $50.00" (no progress bar). The mini cart shows nothing extra (only the theme's own "cart is empty" message). |
 | Below the threshold | "Add $12.50 more to get free shipping!" and a progress bar |
 | Threshold reached | "Congratulations! You have free shipping." and a full bar |
 | Only virtual products | Nothing is shown |
@@ -148,10 +148,13 @@ Only needed if the bar does not appear where you want it with your theme.
 
 ![Bar states: empty, in progress, reached](images/05-states.png)
 
+**After you change settings:** a new text, color or switch in the admin reaches visitors who already have a page open only when their cart data reloads, which happens on their next cart action or when Magento's customer data expires (60 minutes by default). Pages opened afterwards use the new settings. Flushing the cache does not change what is already stored in a visitor's browser.
+
 # 7. Troubleshooting
 
 | Problem | What to check |
 |---|---|
+| The bar does not appear anywhere (Hyvä theme) | Install the Hyvä compatibility package `getdropflow/module-free-shipping-bar-hyva`, enable it (`bin/magento module:enable GetDropFlow_FreeShippingBarHyva`), run `bin/magento setup:upgrade` and flush the cache. |
 | The bar does not appear anywhere | 1) **Enable** is *Yes* for the current store view. 2) With the automatic source, the Free Shipping method is enabled and its Minimum Order Amount is above 0 (for the right website). 3) Flush the cache and, in production mode, redeploy static content (`bin/magento setup:static-content:deploy -f`). 4) The cart does not contain only virtual products. |
 | The bar appears in the cart but not in the mini cart | The theme must use the standard Magento mini cart. If your theme replaces it, use **Mini Cart: Custom Position** (section 4, Theme Compatibility). |
 | The bar appears on the cart page but not on the product page | Check **Show on Product Page**. Custom product page layouts must keep the standard `product.info.main` container. |

@@ -24,7 +24,8 @@ class StarLink extends Field
         if (!ProjectLinks::PUBLISHED) {
             return '';
         }
-        return '<tr id="row_' . $this->escapeHtmlAttr($element->getHtmlId()) . '"><td colspan="4"><div class="gdf-fsb-tools">'
+        return '<tr id="row_' . $this->escapeHtmlAttr($element->getHtmlId()) . '">'
+            . '<td colspan="4"><div class="gdf-fsb-tools">'
             . $this->escapeHtml((string) __('Like this module?')) . ' '
             . '<a href="' . $this->escapeUrl(ProjectLinks::REPO_URL) . '" target="_blank" rel="noopener noreferrer">'
             . $this->escapeHtml((string) __('Star it on GitHub')) . ' &#9733;</a></div></td></tr>';

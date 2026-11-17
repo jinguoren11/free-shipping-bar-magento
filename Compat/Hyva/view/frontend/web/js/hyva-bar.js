@@ -96,7 +96,15 @@
                 if (!this.hasData) {
                     return false;
                 }
-                // The standard mini cart region does not exist in Hyva, so the mini cart only shows at a custom position.
+                // The mini cart never shows the "free shipping on orders over X" hint of an empty cart.
+                if (this.position === 'minicart' && this.data.state === 'empty') {
+                    return false;
+                }
+                // kind "drawer": mounted inside the Hyva cart drawer (cart-drawer.items.before), the standard place; hidden when a custom position is set.
+                // kind "footer": spare mount, used only when a custom mini cart position is set and found.
+                if (this.kind === 'drawer') {
+                    return !this.selector;
+                }
                 if (this.kind === 'footer') {
                     return !!this.selector && this.placed;
                 }
@@ -132,7 +140,7 @@
                     selector = this.selector;
 
                 this.placed = false;
-                if (!selector) {
+                if (!selector || this.kind === 'drawer') {
                     return;
                 }
                 (function attempt() {

@@ -22,3 +22,4 @@
 "Before the element","元素之前"
 "Inside the element, at the end","元素内部，末尾"
 "Inside the element, at the start","元素内部，开头"
+"Leave a field empty to use the built-in text, which is translated automatically. Placeholders: <code>&#123;&#123;amount&#125;&#125;</code> = amount still missing, <code>&#123;&#123;threshold&#125;&#125;</code> = free shipping threshold.","留空则使用自带文案（自动翻译）。占位符：<code>&#123;&#123;amount&#125;&#125;</code> = 还差的金额，<code>&#123;&#123;threshold&#125;&#125;</code> = 免运费门槛。"

@@ -54,8 +54,16 @@ define([
                 if (!show) {
                     return false;
                 }
+                // The mini cart never shows the "free shipping on orders over X" hint of an empty cart.
+                if (self.position === 'minicart' && data.state === 'empty') {
+                    return false;
+                }
                 if (self.kind === 'region') {
                     return !custom;
+                }
+                if (self.kind === 'footer') {
+                    // spare mount, used only when a custom mini cart position is set and found
+                    return custom && self.placed();
                 }
 
                 return !custom || self.placed();

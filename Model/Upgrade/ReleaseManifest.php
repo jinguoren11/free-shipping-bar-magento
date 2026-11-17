@@ -29,7 +29,7 @@ class ReleaseManifest
     public $bytes;
     /** @var string|null */
     public $minFrom;
-    /** @var array<string,string> */
+    /** @var array */
     public $notes;
 
     /**
@@ -38,10 +38,16 @@ class ReleaseManifest
      * @param string $sha256
      * @param int $bytes
      * @param string|null $minFrom
-     * @param array<string,string> $notes
+     * @param array $notes language code => text
      */
-    public function __construct(string $version, string $url, string $sha256, int $bytes, ?string $minFrom, array $notes)
-    {
+    public function __construct(
+        string $version,
+        string $url,
+        string $sha256,
+        int $bytes,
+        ?string $minFrom,
+        array $notes
+    ) {
         $this->version = $version;
         $this->url = $url;
         $this->sha256 = $sha256;
@@ -80,8 +86,11 @@ class ReleaseManifest
      * @return self
      * @throws UpgradeRejected
      */
-    public static function parse(string $json, string $publicKeyBase64, array $allowedUrlPrefixes = [self::DEFAULT_URL_PREFIX]): self
-    {
+    public static function parse(
+        string $json,
+        string $publicKeyBase64,
+        array $allowedUrlPrefixes = [self::DEFAULT_URL_PREFIX]
+    ): self {
         if ($publicKeyBase64 === '') {
             throw new UpgradeRejected('NO_PUBLIC_KEY', 'One-click upgrade is not switched on in this version.');
         }
@@ -90,37 +99,78 @@ class ReleaseManifest
             throw new UpgradeRejected('BAD_MANIFEST', 'The version information could not be read.');
         }
         self::verifySignature($data, $publicKeyBase64);
+        self::checkShape($data);
+        self::checkUrl((string) $data['url'], $allowedUrlPrefixes);
 
-        if (($data['format'] ?? null) !== self::FORMAT) {
-            throw new UpgradeRejected('BAD_MANIFEST', 'The version information has an unknown format.');
-        }
-        $version = $data['version'] ?? null;
-        $url = $data['url'] ?? null;
-        $sha = $data['sha256'] ?? null;
-        $bytes = $data['bytes'] ?? null;
+        return new self(
+            $data['version'],
+            $data['url'],
+            $data['sha256'],
+            $data['bytes'],
+            $data['min_from'] ?? null,
+            self::cleanNotes((array) ($data['notes'] ?? []))
+        );
+    }
+
+    /**
+     * @param array $data
+     * @return void
+     * @throws UpgradeRejected
+     */
+    private static function checkShape(array $data): void
+    {
         $minFrom = $data['min_from'] ?? null;
-        if (!is_string($version) || !self::isVersion($version) || !is_string($url) || strlen($url) > 500
-            || !is_string($sha) || preg_match('/^[0-9a-f]{64}$/', $sha) !== 1
-            || !is_int($bytes) || $bytes < 1 || $bytes > self::MAX_BYTES
-            || ($minFrom !== null && (!is_string($minFrom) || !self::isVersion($minFrom)))) {
+        $problems = [
+            ($data['format'] ?? null) !== self::FORMAT,
+            !self::isVersionValue($data['version'] ?? null),
+            !is_string($data['url'] ?? null) || strlen($data['url']) > 500,
+            !is_string($data['sha256'] ?? null) || preg_match('/^[0-9a-f]{64}$/', $data['sha256']) !== 1,
+            !is_int($data['bytes'] ?? null) || $data['bytes'] < 1 || $data['bytes'] > self::MAX_BYTES,
+            $minFrom !== null && !self::isVersionValue($minFrom),
+        ];
+        if (in_array(true, $problems, true)) {
             throw new UpgradeRejected('BAD_MANIFEST', 'The version information is incomplete.');
         }
-        $allowed = false;
+    }
+
+    /**
+     * @param string $url
+     * @param string[] $allowedUrlPrefixes
+     * @return void
+     * @throws UpgradeRejected
+     */
+    private static function checkUrl(string $url, array $allowedUrlPrefixes): void
+    {
         foreach ($allowedUrlPrefixes as $prefix) {
             if ($prefix !== '' && strpos($url, $prefix) === 0 && strpos($url, '..') === false) {
-                $allowed = true;
+                return;
             }
         }
-        if (!$allowed) {
-            throw new UpgradeRejected('BAD_URL', 'The download address is not an allowed address.');
-        }
+        throw new UpgradeRejected('BAD_URL', 'The download address is not an allowed address.');
+    }
+
+    /**
+     * @param array $raw
+     * @return array
+     */
+    private static function cleanNotes(array $raw): array
+    {
         $notes = [];
-        foreach ((array) ($data['notes'] ?? []) as $lang => $text) {
+        foreach ($raw as $lang => $text) {
             if (is_string($lang) && is_string($text) && strlen($lang) <= 10) {
                 $notes[$lang] = substr($text, 0, 2000);
             }
         }
-        return new self($version, $url, $sha, $bytes, $minFrom, $notes);
+        return $notes;
+    }
+
+    /**
+     * @param mixed $value
+     * @return bool
+     */
+    private static function isVersionValue($value): bool
+    {
+        return is_string($value) && self::isVersion($value);
     }
 
     /**
@@ -157,7 +207,10 @@ class ReleaseManifest
         if ($signature === false || $key === false || strlen($signature) !== SODIUM_CRYPTO_SIGN_BYTES
             || strlen($key) !== SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES
             || !sodium_crypto_sign_verify_detached($signature, self::canonical($data), $key)) {
-            throw new UpgradeRejected('BAD_SIGNATURE', 'The version information is not signed by the author. Nothing was changed.');
+            throw new UpgradeRejected(
+                'BAD_SIGNATURE',
+                'The version information is not signed by the author. Nothing was changed.'
+            );
         }
     }
 }

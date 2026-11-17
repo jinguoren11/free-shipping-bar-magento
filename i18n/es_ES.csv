@@ -22,3 +22,4 @@
 "Before the element","Antes del elemento"
 "Inside the element, at the end","Dentro del elemento, al final"
 "Inside the element, at the start","Dentro del elemento, al principio"
+"Leave a field empty to use the built-in text, which is translated automatically. Placeholders: <code>&#123;&#123;amount&#125;&#125;</code> = amount still missing, <code>&#123;&#123;threshold&#125;&#125;</code> = free shipping threshold.","Deja un campo vacío para usar el texto incorporado, que se traduce automáticamente. Marcadores: <code>&#123;&#123;amount&#125;&#125;</code> = importe que falta, <code>&#123;&#123;threshold&#125;&#125;</code> = importe mínimo para envío gratis."

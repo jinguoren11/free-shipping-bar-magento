@@ -51,19 +51,22 @@ class MoreTools extends Field
         }
         $items = '';
         foreach ($this->catalog->getItems() as $item) {
-            $items .= '<li class="gdf-fsb-tools__item"><strong>' . $this->escapeHtml($item['name']) . '</strong> &mdash; '
+            $host = (string) parse_url($item['url'], PHP_URL_HOST);
+            $items .= '<li class="gdf-fsb-tools__item"><strong>' . $this->escapeHtml($item['name'])
+                . '</strong> &mdash; '
                 . $this->escapeHtml((string) __($item['description'])) . ' '
                 . '<a href="' . $this->escapeUrl($item['url']) . '" target="_blank" rel="noopener noreferrer">'
-                . $this->escapeHtml((string) __('Learn more at %1', parse_url($item['url'], PHP_URL_HOST)))
+                . $this->escapeHtml((string) __('Learn more at %1', $host))
                 . '</a></li>';
         }
         if ($items === '') {
             return '';
         }
+        $note = (string) __('Optional suggestions from the author. This module works the same without them.');
         return '<tr id="row_' . $this->escapeHtmlAttr($element->getHtmlId()) . '"><td colspan="4">'
-            . '<div class="gdf-fsb-tools"><div class="gdf-fsb-tools__title">' . $this->escapeHtml((string) __('More tools'))
-            . '</div><p class="gdf-fsb-tools__note">'
-            . $this->escapeHtml((string) __('Optional suggestions from the author. This module works the same without them.'))
+            . '<div class="gdf-fsb-tools"><div class="gdf-fsb-tools__title">'
+            . $this->escapeHtml((string) __('More tools'))
+            . '</div><p class="gdf-fsb-tools__note">' . $this->escapeHtml($note)
             . '</p><ul class="gdf-fsb-tools__list">' . $items . '</ul></div></td></tr>';
     }
 }

@@ -54,38 +54,65 @@ class PackageInspector
         }
         $total = 0;
         $hasModule = false;
-        $top = self::TOP_FOLDER . '/';
         for ($i = 0; $i < $zip->numFiles; $i++) {
             $stat = $zip->statIndex($i);
             $name = is_array($stat) ? (string) $stat['name'] : '';
-            if ($name === '' || strpos($name, "\0") !== false || strpos($name, '\\') !== false
-                || $name[0] === '/' || preg_match('/(^|\/)\.\.(\/|$)/', $name) === 1 || preg_match('/^[A-Za-z]:/', $name) === 1) {
-                throw new UpgradeRejected('UNSAFE_PATH', 'The package holds an unsafe path.');
-            }
-            if ($name !== $top && strpos($name, $top) !== 0) {
-                throw new UpgradeRejected('UNSAFE_PATH', 'The package holds a file outside its own folder.');
-            }
-            $os = 0;
-            $attr = 0;
-            if ($zip->getExternalAttributesIndex($i, $os, $attr) && $os === \ZipArchive::OPSYS_UNIX
-                && ((($attr >> 16) & 0170000) === 0120000)) {
-                throw new UpgradeRejected('UNSAFE_PATH', 'The package holds a link.');
-            }
+            $this->checkName($name);
+            $this->checkNotLink($zip, $i);
             $total += (int) $stat['size'];
             if ($total > self::MAX_UNPACKED_BYTES) {
                 throw new UpgradeRejected('BAD_ZIP', 'The package is too big when unpacked.');
             }
-            if ($name === $top . 'etc/module.xml') {
-                $hasModule = true;
-            }
+            $hasModule = $hasModule || $name === self::TOP_FOLDER . '/etc/module.xml';
         }
         if (!$hasModule) {
             throw new UpgradeRejected('BAD_ZIP', 'The package holds no module.');
         }
-        $composer = $zip->getFromName($top . 'composer.json');
+        $composer = $zip->getFromName(self::TOP_FOLDER . '/composer.json');
         $data = is_string($composer) ? json_decode($composer, true) : null;
         if (!is_array($data) || ($data['version'] ?? null) !== $version) {
-            throw new UpgradeRejected('VERSION_MISMATCH', 'The version inside the package is not the announced version.');
+            throw new UpgradeRejected(
+                'VERSION_MISMATCH',
+                'The version inside the package is not the announced version.'
+            );
+        }
+    }
+
+    /**
+     * @param string $name entry name inside the zip
+     * @return void
+     * @throws UpgradeRejected
+     */
+    private function checkName(string $name): void
+    {
+        $unsafe = $name === ''
+            || strpos($name, "\0") !== false
+            || strpos($name, '\\') !== false
+            || $name[0] === '/'
+            || preg_match('/(^|\/)\.\.(\/|$)/', $name) === 1
+            || preg_match('/^[A-Za-z]:/', $name) === 1;
+        if ($unsafe) {
+            throw new UpgradeRejected('UNSAFE_PATH', 'The package holds an unsafe path.');
+        }
+        $top = self::TOP_FOLDER . '/';
+        if ($name !== $top && strpos($name, $top) !== 0) {
+            throw new UpgradeRejected('UNSAFE_PATH', 'The package holds a file outside its own folder.');
+        }
+    }
+
+    /**
+     * @param \ZipArchive $zip
+     * @param int $index
+     * @return void
+     * @throws UpgradeRejected
+     */
+    private function checkNotLink(\ZipArchive $zip, int $index): void
+    {
+        $os = 0;
+        $attr = 0;
+        if ($zip->getExternalAttributesIndex($index, $os, $attr) && $os === \ZipArchive::OPSYS_UNIX
+            && ((($attr >> 16) & 0170000) === 0120000)) {
+            throw new UpgradeRejected('UNSAFE_PATH', 'The package holds a link.');
         }
     }
 }

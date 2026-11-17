@@ -13,15 +13,25 @@
 
 The Hyvä module does nothing on non-Hyvä stores, so you may leave it installed if you run both.
 
+> **Hyvä needs BOTH packages.** Without the Hyvä compatibility package the bar simply does not appear on a Hyvä store (it never shows an error).
+
 ### Compatibility status
 | Theme | Status | Notes |
 |---|---|---|
-| Magento Luma (2.4.7) | Data and texts tested; on-page position being tested | Standard positions: mini cart, cart page, product page |
-| Magento Blank | Not yet tested | Same structure as Luma; expected to work |
-| Hyvä (default) | Compatibility module written; **not yet tested** | Cart page and product page automatic. Mini cart (Hyvä drawer): choose a custom position in the settings |
-| Hyvä (CSP variant) | Written to be CSP friendly; **not yet tested** | |
+| Magento Luma (2.4.7) | Tested: texts, amounts, states, all three positions | Standard positions: mini cart, cart page, product page |
+| Magento Blank | Tested: all three positions, layout, console (test report 014) | A stray bar below the footer was found and fixed (retest pending) |
+| Hyvä (default) + compatibility package | Cart page tested; product page and cart drawer positions reworked after test 014, **retest pending** | Cart page, product page (below the add-to-cart row) and cart drawer (above the items) |
+| Hyvä (default) without the compatibility package | Tested: nothing is shown, no errors | Install the compatibility package |
+| Hyvä (CSP variant) | Written to be CSP friendly (see below); **not yet tested** | |
 | Other Luma-based themes (paid or free) | Not yet tested | Usually work; if not, set a custom position |
 | Headless / PWA Studio / custom storefronts | **Not supported** | The module renders inside the Magento storefront |
+
+### What the customer sees when the cart is empty
+- **Cart page and product page:** "Free shipping on orders over $50.00" (no progress bar).
+- **Mini cart / cart drawer:** the bar is **not shown** when the cart is empty (only the theme's own "cart is empty" message).
+
+### Hyvä and CSP
+The Hyvä package has no inline scripts and no inline Alpine expressions: the logic is one external file and the page only uses property and method names, which is what Hyvä's CSP build expects. It needs your Content Security Policy to allow scripts from your own site (`script-src 'self'`).
 
 ### How it fits your theme
 - All style classes start with `gdf-fsb-`, so they do not clash with your theme.
@@ -39,6 +49,7 @@ Stores > Configuration > Sales > Free Shipping Progress Bar > **Theme Compatibil
 
 ### Not covered
 - The checkout page itself (the bar is for the cart, mini cart and product page).
+- After you change a text or setting in the admin, visitors who already have the page open see it when their cart data reloads (see the user guide).
 - Themes that remove the standard mini cart and use their own cart widget: use "Mini Cart: Custom Position".
 - Free shipping rules that depend on countries, customer groups, or cart price rules are not read (see the user guide).
 
@@ -56,12 +67,22 @@ Hyvä 兼容包在非 Hyvä 店铺上什么都不做，两种主题并存时可�
 ### 兼容状态
 | 主题 | 状态 | 说明 |
 |---|---|---|
-| Magento Luma（2.4.7） | 数据和文字已测；页面位置测试中 | 标准位置：小购物车、购物车页、商品页 |
-| Magento Blank | 尚未测试 | 结构同 Luma，预期可用 |
-| Hyvä（默认） | 兼容包已写好，**尚未测试** | 购物车页、商品页自动显示；小购物车（Hyvä 抽屉）请在设置里选"自定义位置" |
-| Hyvä（CSP 版） | 按 CSP 友好方式编写，**尚未测试** | |
+| Magento Luma（2.4.7） | 已测：文字、金额、各状态、三处位置 | 标准位置：小购物车、购物车页、商品页 |
+| Magento Blank | 已测：三处位置、布局、控制台（测试报告 014） | 发现并已修复"页脚下方多一条"，待复测 |
+| Hyvä（默认）+ 兼容包 | 购物车页已测；商品页和抽屉位置在测试 014 后重做，**待复测** | 购物车页、商品页（加入购物车行下方）、购物车抽屉（商品列表上方） |
+| Hyvä（默认），不装兼容包 | 已测：什么都不显示，不报错 | 请安装兼容包 |
+| Hyvä（CSP 版） | 按 CSP 友好方式编写（见下），**尚未测试** | |
 | 其他基于 Luma 的主题（收费/免费） | 尚未测试 | 一般可用；不行就设自定义位置 |
 | 无头 / PWA Studio / 自建前端 | **不支持** | 本模块在 Magento 自带前端里渲染 |
+
+> **Hyvä 必须同时装两个包。** 不装 Hyvä 兼容包，Hyvä 店铺上就没有进度条（不会报错）。
+
+### 购物车为空时顾客看到什么
+- **购物车页、商品页**："订单满 $50.00 免运费"（无进度条）。
+- **小购物车 / 购物车抽屉**：购物车为空时**不显示进度条**（只显示主题自带的"购物车为空"）。
+
+### Hyvä 与 CSP
+Hyvä 兼容包没有内联脚本、没有内联 Alpine 表达式：逻辑在一个外部文件里，页面上只用属性名和方法名（Hyvä CSP 版要求的写法）。需要你的内容安全策略允许本站脚本（`script-src 'self'`）。
 
 ### 它怎么适应你的主题
 - 所有样式类名都以 `gdf-fsb-` 开头，不会和主题冲突。
@@ -79,5 +100,6 @@ Hyvä 兼容包在非 Hyvä 店铺上什么都不做，两种主题并存时可�
 
 ### 不覆盖的情况
 - 结账页本身（进度条用于购物车、小购物车、商品页）。
+- 后台改了文字或设置后，已经打开页面的访客要等他们的购物车数据重新加载才会看到（见用户手册）。
 - 去掉了标准小购物车、用自己购物车组件的主题：请用"小购物车：自定义位置"。
 - 取决于国家、客户组、购物车价格规则的免运费规则不会被读取（见用户手册）。

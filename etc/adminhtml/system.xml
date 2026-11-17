@@ -43,7 +43,7 @@
             </group>
             <group id="messages" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Messages</label>
-                <comment>Leave a field empty to use the built-in text, which is translated automatically. Placeholders: {{amount}} = amount still missing, {{threshold}} = free shipping threshold.</comment>
+                <comment><![CDATA[Leave a field empty to use the built-in text, which is translated automatically. Placeholders: <code>&#123;&#123;amount&#125;&#125;</code> = amount still missing, <code>&#123;&#123;threshold&#125;&#125;</code> = free shipping threshold.]]></comment>
                 <field id="progress_message" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Message: Not Yet Free Shipping</label>
                 </field>

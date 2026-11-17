@@ -126,4 +126,35 @@ c.onPrivateContent({detail: {data: {'free-shipping-bar': other}}});
 c.onPrivateContent({detail: {data: {'free-shipping-bar': other}}});
 assert.deepStrictEqual(events, ['reload-customer-section-data']);
 
+// 13. Hyva cart drawer (kind "drawer"): shown with items, hidden for an empty cart, hidden when a custom position is set
+const mcAll = Object.assign({}, initialEmpty, {positions: {minicart: true, cart: true, product: true}});
+const drawerAttrs = (d) => ({'data-position': 'minicart', 'data-kind': 'drawer', 'data-initial': JSON.stringify(d)});
+c = make(drawerAttrs(mcAll));
+c.init();
+assert.strictEqual(c.isVisible, false, 'empty cart: no hint in the mini cart');
+c.onPrivateContent({detail: {data: {'free-shipping-bar': Object.assign({}, mcAll, {state: 'progress', percent: 20, message: 'Add $40.00 more to get free shipping!'})}}});
+assert.strictEqual(c.isVisible, true, 'drawer with items');
+assert.strictEqual(c.message, 'Add $40.00 more to get free shipping!');
+c.onPrivateContent({detail: {data: {'free-shipping-bar': Object.assign({}, mcAll, {state: 'done', percent: 100})}}});
+assert.strictEqual(c.isVisible, true);
+const mcCustom = Object.assign({}, mcAll, {state: 'progress', selectors: {minicart: '.my-minicart', cart: '', product: ''}});
+docState.target = null;
+c = make(drawerAttrs(mcCustom));
+c.init();
+assert.strictEqual(c.isVisible, false, 'custom mini cart position set: drawer mount steps aside');
+timers.length = 0;
+c.startPlacing();
+assert.strictEqual(timers.length, 0, 'drawer mount never moves itself');
+// the spare footer mount takes over only once its element is found
+c = make({'data-position': 'minicart', 'data-kind': 'footer', 'data-initial': JSON.stringify(mcCustom)});
+c.init();
+assert.strictEqual(c.isVisible, false);
+docState.target = {parentNode: {insertBefore() {}}, nextSibling: null, insertBefore() {}, appendChild() {}, firstChild: null};
+timers.shift()();
+assert.strictEqual(c.isVisible, true);
+// footer + progress without custom position: nothing (this was the stray bar below the footer, P3)
+c = make({'data-position': 'minicart', 'data-kind': 'footer', 'data-initial': JSON.stringify(Object.assign({}, mcAll, {state: 'progress'}))});
+c.init();
+assert.strictEqual(c.isVisible, false);
+
 console.log('hyva-bar.js: all checks passed');

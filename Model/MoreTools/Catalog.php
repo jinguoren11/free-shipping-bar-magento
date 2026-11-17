@@ -14,7 +14,7 @@ namespace GetDropFlow\FreeShippingBar\Model\MoreTools;
 class Catalog
 {
     /**
-     * @return array<int, array{name: string, url: string, description: string}>
+     * @return array[] each item has name, url and description
      */
     public function getItems(): array
     {
@@ -22,7 +22,8 @@ class Catalog
             [
                 'name' => 'GetDropFlow',
                 'url' => 'https://getdropflow.com',
-                'description' => 'Dropshipping plugin for Magento 2: import AliExpress products, keep prices and stock in sync, and send order tracking numbers back to your store.',
+                'description' => 'Dropshipping plugin for Magento 2: import AliExpress products, keep prices and '
+                    . 'stock in sync, and send order tracking numbers back to your store.',
             ],
         ];
     }

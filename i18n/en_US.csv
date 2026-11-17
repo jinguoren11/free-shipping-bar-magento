@@ -3,3 +3,4 @@
 "Free shipping on orders over %1","Free shipping on orders over %1"
 "More tools","More tools"
 "Learn more at %1","Learn more at %1"
+"Leave a field empty to use the built-in text, which is translated automatically. Placeholders: <code>&#123;&#123;amount&#125;&#125;</code> = amount still missing, <code>&#123;&#123;threshold&#125;&#125;</code> = free shipping threshold.","Leave a field empty to use the built-in text, which is translated automatically. Placeholders: <code>&#123;&#123;amount&#125;&#125;</code> = amount still missing, <code>&#123;&#123;threshold&#125;&#125;</code> = free shipping threshold."
