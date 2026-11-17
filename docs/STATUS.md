@@ -1,9 +1,24 @@
 # STATUS — 云端电脑D（Free Shipping Progress Bar，Magento 2 免费插件）
 
-**最后更新**：2026-11-16　**P1 修复提交：`ceb052cd`；主题兼容提交：`f9484aa`（请 ASUS 用最新提交重装并按 TR-001/006 测）**　（第 6 阶段：一键升级 + 双渠道；下载分流改为 GitHub Releases）　**分支**：`claude/magento-free-shipping-bar-mqm0n2`　**仓库**：jinguoren11/free-shipping-bar-magento
+**最后更新**：2026-11-16　**P1 修复提交：`ceb052cd`；主题兼容提交：`f9484aa`；**005/006 修复提交：`5a349036`（请 ASUS 用它重装并按 TR-007 复测）****　（第 6 阶段：一键升级 + 双渠道；下载分流改为 GitHub Releases）　**分支**：`claude/magento-free-shipping-bar-mqm0n2`　**仓库**：jinguoren11/free-shipping-bar-magento
 
 ## 当前阶段
 **新铁规矩：每个插件必须一键升级。** 设计已写 `docs/05-一键升级与双渠道设计.md`；**阶段 1 已完成**（渠道构建开关、签名校验、zip 安全检查）；下一步阶段 2（升级引擎）。实机待办：TR-001/002/003（待派单）；TR-004/005（升级成功/失败退回）要等阶段 2–3 实现后才能派单。已读 `from-a:docs/FROM-A/001-owner-decisions.md` 和 README；读过 `docs/TEST-REPORTS.md`：无报告。
+
+## 005 / 006 处理完成，提交 `5a349036`
+| 项 | 处理 |
+|---|---|
+| **P2** 后台 Messages 说明缺占位符 | 原因：Magento 把说明文字里的 `{{amount}}` 当模板指令吞掉。改成 CDATA + HTML 实体 `&#123;&#123;amount&#125;&#125;`，en/es/zh 三个 i18n 都补了同样的键；新增 `AdminTextsTest`（源文本无裸 `{{`、三种语言各有翻译且含两个占位符）；改回旧写法实测 5 项变红 |
+| **N1** 空车行为 | 已写进 `docs/THEMES.md`、用户手册、中文教程；代码也统一：小购物车/抽屉空车时**不显示**条（Luma 和 Hyvä 都有 JS 测试） |
+| **N2** 后台改设置后的刷新 | 用户手册和教程各加一段：访客要等购物车数据重新加载（下次操作购物车或 Magento 顾客数据过期，默认 60 分钟）；清缓存不影响浏览器里已有的数据 |
+| **H1** Hyvä 抽屉要有条 | 读了 Hyvä 默认主题公开源码（只读，没改）：抽屉有容器 `cart-drawer.items.before`。兼容包新增 Alpine 挂载块放进去（kind=drawer）；空车不显示；设了小购物车自定义位置时抽屉里的退让、只在自定义位置出现一处 |
+| **H1b** Hyvä 商品页位置 | 原因：Hyvä 的 `product.info` 块只打印它认识的子块，我挂在外层 `product.info.main` 所以掉到评论表单之后。改挂 `product.info.additional`（该块里加入购物车行的下方、卡片内） |
+| **H2** 文档 | `docs/THEMES.md`、用户手册、中文教程都写明"Hyvä 必须同时装兼容包，不装就没有条（不报错）"，故障排查表加一行 |
+| **P3** Blank 页脚下方多余的条 | **是 bug，已修**：Luma 的备用挂载点（页脚）在"没设自定义小购物车位置"时本应隐藏，我的判断写反了（`!custom \|\| placed`）。改为 `custom && placed`；新增 Luma 组件 JS 测试 `Test/js/luma-bar.test.js`，把旧写法放回去实测会变红 |
+| **CSP 版** | 做的是**CSP 兼容写法**（不是"不支持"）：无内联脚本、无内联 Alpine 表达式；逻辑在外部文件 `hyva-bar.js`，模板指令只用属性名/方法名，样式用 CSS 文件+`el.style`（CSSOM，不受 CSP 限制）。要求站点 CSP 允许本站脚本（`script-src 'self'`）。**未实测**，TR-007 #5 |
+| **phpcs 警告 45 条** | 我看不到明细（报告在 ASUS 那边）。按 Magento2 标准常见项自查清理：全部超 120 字符的行（PHP/phtml）已折行；`ReleaseManifest::parse`、`PackageInspector::checkEntries` 拆成小方法降复杂度；文档注释里的泛型类型 `array<…>` 改为 `array`；确认每个方法/属性都有文档注释。**请 ASUS 重跑并把警告清单贴回 TEST-REPORTS**，我按清单逐条处理 |
+
+测试：PHP 55 项（204 断言）+ JS 两套（Luma、Hyvä）全过。TR-007 已登记（Hyvä 抽屉、商品页位置、CSP、Blank、空车、P2、phpcs）。Hyvä 的容器名来自 Hyvä 默认主题当前公开源码；老版本 Hyvä（抽屉容器 1.1.18 之前）可能没有，实测时留意。
 
 ## 主题兼容（总管 004）完成，提交 `f9484aa`
 - **挂载不依赖主题**：标准布局位置 + 后台 *Theme Compatibility*（购物车页/商品页/小购物车各一个自定义 CSS 选择器 + 相对位置）；找不到元素 → 什么都不显示，不报 JS 错；选择器服务端清洗（拒 `<>{};` 反斜杠、限长）
