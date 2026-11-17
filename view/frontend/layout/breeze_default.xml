@@ -2,7 +2,8 @@
 <!--
     Breeze (Swissup) only: this handle is applied only on stores that use the Breeze frontend, so Luma and Hyvä stores
     are not affected. Breeze replaces Luma's RequireJS/Knockout stack with its own scripts and needs (1) the component
-    registered by name and (2) the mini cart region called "extraInfo" (Luma calls it "extra_info").
+    registered by name and (2) the mini cart bar to be a direct child of minicart_content with displayArea "extraInfo"
+    (Breeze's mini cart template shows the region "extraInfo"; Luma's "extra_info" container is not shown by Breeze).
     The component file is the same one Luma uses.
 -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
@@ -33,17 +34,15 @@
                                         </item>
                                     </item>
                                 </item>
-                                <item name="extraInfo" xsi:type="array">
-                                    <item name="children" xsi:type="array">
-                                        <item name="free_shipping_bar" xsi:type="array">
-                                            <item name="component" xsi:type="string">GetDropFlow_FreeShippingBar/js/view/bar</item>
-                                            <item name="config" xsi:type="array">
-                                                <item name="position" xsi:type="string">minicart</item>
-                                                <item name="kind" xsi:type="string">region</item>
-                                            </item>
-                                            <item name="sortOrder" xsi:type="string">10</item>
-                                        </item>
+                                <!-- Breeze fills getRegion('extraInfo') with the children whose displayArea is 'extraInfo' -->
+                                <item name="free_shipping_bar_breeze" xsi:type="array">
+                                    <item name="component" xsi:type="string">GetDropFlow_FreeShippingBar/js/view/bar</item>
+                                    <item name="displayArea" xsi:type="string">extraInfo</item>
+                                    <item name="config" xsi:type="array">
+                                        <item name="position" xsi:type="string">minicart</item>
+                                        <item name="kind" xsi:type="string">region</item>
                                     </item>
+                                    <item name="sortOrder" xsi:type="string">10</item>
                                 </item>
                             </item>
                         </item>

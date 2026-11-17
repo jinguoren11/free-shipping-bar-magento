@@ -12,6 +12,8 @@ namespace GetDropFlow\FreeShippingBar\Model;
 class MessageBuilder
 {
     /**
+     * Builds the text for one cart state, using the admin text when there is one.
+     *
      * @param string $state One of ProgressCalculator::STATE_*
      * @param string $override Admin text for this state (may be empty)
      * @param string $amount Formatted amount still missing

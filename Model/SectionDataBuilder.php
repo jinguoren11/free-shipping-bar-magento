@@ -39,6 +39,8 @@ class SectionDataBuilder
     }
 
     /**
+     * Builds the data array the browser receives for the free shipping bar.
+     *
      * @param string $storeCode
      * @param string $lang two letter language of the store view
      * @param bool $enabled module switched on for this store view

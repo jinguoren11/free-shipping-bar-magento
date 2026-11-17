@@ -28,14 +28,17 @@ class AmountFormatter
     }
 
     /**
+     * Formats a base-currency amount in the customer display currency as plain text.
+     *
      * @param float $baseAmount
      * @param StoreInterface $store
      * @return string
      */
     public function format(float $baseAmount, StoreInterface $store): string
     {
+        // includeContainer = false: plain text, no HTML wrapper to strip
         return html_entity_decode(
-            strip_tags((string) $this->priceCurrency->convertAndFormat($baseAmount, true, 2, $store)),
+            (string) $this->priceCurrency->convertAndFormat($baseAmount, false, 2, $store),
             ENT_QUOTES | ENT_HTML5
         );
     }

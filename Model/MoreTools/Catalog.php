@@ -14,7 +14,9 @@ namespace GetDropFlow\FreeShippingBar\Model\MoreTools;
 class Catalog
 {
     /**
-     * @return array[] each item has name, url and description
+     * Returns the fixed list of tools shown in the "More tools" panel.
+     *
+     * @return array[] each item has name, url, host and description
      */
     public function getItems(): array
     {
@@ -22,6 +24,7 @@ class Catalog
             [
                 'name' => 'GetDropFlow',
                 'url' => 'https://getdropflow.com',
+                'host' => 'getdropflow.com',
                 'description' => 'Dropshipping plugin for Magento 2: import AliExpress products, keep prices and '
                     . 'stock in sync, and send order tracking numbers back to your store.',
             ],

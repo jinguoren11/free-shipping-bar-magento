@@ -6,7 +6,7 @@ declare(strict_types=1);
 
 namespace GetDropFlow\FreeShippingBar\Test\Unit\Model\Upgrade;
 
-use GetDropFlow\FreeShippingBar\Model\Upgrade\ReleaseManifest;
+use GetDropFlow\FreeShippingBar\Model\Upgrade\ReleaseManifestParser;
 use GetDropFlow\FreeShippingBar\Model\Upgrade\UpgradeRejected;
 use PHPUnit\Framework\TestCase;
 
@@ -35,7 +35,7 @@ class ReleaseManifestTest extends TestCase
             'min_from' => '1.0.0',
             'notes' => ['en' => 'Fixes', 'zh' => '修复'],
         ];
-        $data['signature'] = base64_encode(sodium_crypto_sign_detached(ReleaseManifest::canonical($data), $secret ?? $this->secret));
+        $data['signature'] = base64_encode(sodium_crypto_sign_detached((new ReleaseManifestParser())->canonical($data), $secret ?? $this->secret));
         return (string) json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 
@@ -51,7 +51,7 @@ class ReleaseManifestTest extends TestCase
 
     public function testGoodManifest(): void
     {
-        $m = ReleaseManifest::parse($this->signed(), $this->public);
+        $m = (new ReleaseManifestParser())->parse($this->signed(), $this->public);
         $this->assertSame('1.0.1', $m->version);
         $this->assertSame('1.0.0', $m->minFrom);
         $this->assertSame('修复', $m->notes['zh']);
@@ -60,7 +60,7 @@ class ReleaseManifestTest extends TestCase
     public function testNoPublicKeyMeansUpgradeIsOff(): void
     {
         $this->assertRejected('NO_PUBLIC_KEY', function () {
-            ReleaseManifest::parse($this->signed(), '');
+            (new ReleaseManifestParser())->parse($this->signed(), '');
         });
     }
 
@@ -68,7 +68,7 @@ class ReleaseManifestTest extends TestCase
     {
         $other = sodium_crypto_sign_secretkey(sodium_crypto_sign_keypair());
         $this->assertRejected('BAD_SIGNATURE', function () use ($other) {
-            ReleaseManifest::parse($this->signed([], $other), $this->public);
+            (new ReleaseManifestParser())->parse($this->signed([], $other), $this->public);
         });
     }
 
@@ -79,7 +79,7 @@ class ReleaseManifestTest extends TestCase
             $copy = $data;
             $copy[$k] = $v;
             $this->assertRejected('BAD_SIGNATURE', function () use ($copy) {
-                ReleaseManifest::parse((string) json_encode($copy), $this->public);
+                (new ReleaseManifestParser())->parse((string) json_encode($copy), $this->public);
             });
         }
     }
@@ -87,20 +87,20 @@ class ReleaseManifestTest extends TestCase
     public function testDownloadMustComeFromTheAllowedAddress(): void
     {
         $this->assertRejected('BAD_URL', function () {
-            ReleaseManifest::parse($this->signed(['url' => 'https://github.com/someone-else/other-repo/releases/download/v1/x.zip']), $this->public);
+            (new ReleaseManifestParser())->parse($this->signed(['url' => 'https://github.com/someone-else/other-repo/releases/download/v1/x.zip']), $this->public);
         });
         $this->assertRejected('BAD_URL', function () {
-            ReleaseManifest::parse($this->signed(['url' => 'http://github.com/jinguoren11/free-shipping-bar-magento/releases/download/v1/x.zip']), $this->public);
+            (new ReleaseManifestParser())->parse($this->signed(['url' => 'http://github.com/jinguoren11/free-shipping-bar-magento/releases/download/v1/x.zip']), $this->public);
         });
         $this->assertRejected('BAD_URL', function () {
-            ReleaseManifest::parse($this->signed(['url' => 'https://github.com/jinguoren11/free-shipping-bar-magento/releases/download/../../x.zip']), $this->public);
+            (new ReleaseManifestParser())->parse($this->signed(['url' => 'https://github.com/jinguoren11/free-shipping-bar-magento/releases/download/../../x.zip']), $this->public);
         });
     }
 
     public function testTestPrefixAllowsLocalhostOnlyWhenGiven(): void
     {
         $json = $this->signed(['url' => 'http://127.0.0.1:8765/x.zip']);
-        $m = ReleaseManifest::parse($json, $this->public, ['http://127.0.0.1:8765/']);
+        $m = (new ReleaseManifestParser())->parse($json, $this->public, ['http://127.0.0.1:8765/']);
         $this->assertSame('http://127.0.0.1:8765/x.zip', $m->url);
     }
 
@@ -108,21 +108,21 @@ class ReleaseManifestTest extends TestCase
     {
         foreach ([['version' => '1.0'], ['sha256' => 'xyz'], ['bytes' => 0], ['bytes' => 99999999999], ['format' => 2], ['min_from' => 'abc']] as $bad) {
             $this->assertRejected($bad === ['format' => 2] ? 'BAD_MANIFEST' : 'BAD_MANIFEST', function () use ($bad) {
-                ReleaseManifest::parse($this->signed($bad), $this->public);
+                (new ReleaseManifestParser())->parse($this->signed($bad), $this->public);
             });
         }
         $this->assertRejected('BAD_MANIFEST', function () {
-            ReleaseManifest::parse('not json', $this->public);
+            (new ReleaseManifestParser())->parse('not json', $this->public);
         });
     }
 
     public function testVersionComparison(): void
     {
-        $this->assertTrue(ReleaseManifest::isNewer('1.0.1', '1.0.0'));
-        $this->assertTrue(ReleaseManifest::isNewer('1.10.0', '1.9.9'));
-        $this->assertFalse(ReleaseManifest::isNewer('1.0.0', '1.0.0'));
-        $this->assertFalse(ReleaseManifest::isNewer('0.9.9', '1.0.0'));
-        $this->assertFalse(ReleaseManifest::isNewer('1.0.1-evil', '1.0.0'));
+        $this->assertTrue((new ReleaseManifestParser())->isNewer('1.0.1', '1.0.0'));
+        $this->assertTrue((new ReleaseManifestParser())->isNewer('1.10.0', '1.9.9'));
+        $this->assertFalse((new ReleaseManifestParser())->isNewer('1.0.0', '1.0.0'));
+        $this->assertFalse((new ReleaseManifestParser())->isNewer('0.9.9', '1.0.0'));
+        $this->assertFalse((new ReleaseManifestParser())->isNewer('1.0.1-evil', '1.0.0'));
     }
 
     public function testOtherRepositoriesAndLookalikeHostsAreRefused(): void
@@ -133,7 +133,7 @@ class ReleaseManifestTest extends TestCase
             'https://raw.githubusercontent.com/jinguoren11/free-shipping-bar-magento/main/x.zip',
         ] as $url) {
             $this->assertRejected('BAD_URL', function () use ($url) {
-                ReleaseManifest::parse($this->signed(['url' => $url]), $this->public);
+                (new ReleaseManifestParser())->parse($this->signed(['url' => $url]), $this->public);
             });
         }
     }

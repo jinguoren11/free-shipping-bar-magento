@@ -26,6 +26,8 @@ class SectionSettings
     }
 
     /**
+     * Reads all settings the browser needs for one store view.
+     *
      * @param int $storeId
      * @return array
      */

@@ -12,7 +12,7 @@
         RETRY_MS = 500,
         reloadAsked = false;
 
-    function component() {
+    var component = function () {
         return {
             position: '',
             kind: 'page',
@@ -137,13 +137,14 @@
             startPlacing: function () {
                 var self = this,
                     tries = 0,
+                    attempt,
                     selector = this.selector;
 
                 this.placed = false;
                 if (!selector || this.kind === 'drawer') {
                     return;
                 }
-                (function attempt() {
+                attempt = function () {
                     if (self.selector !== selector) {
                         return;
                     }
@@ -156,7 +157,8 @@
                     if (tries < MAX_TRIES) {
                         window.setTimeout(attempt, RETRY_MS);
                     }
-                }());
+                };
+                attempt();
             },
 
             placeOnce: function (selector) {
@@ -186,7 +188,7 @@
                 }
             }
         };
-    }
+    };
 
     if (window.Alpine && window.Alpine.data) {
         window.Alpine.data('gdfFsb', component);

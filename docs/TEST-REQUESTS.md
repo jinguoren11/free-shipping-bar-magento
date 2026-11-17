@@ -159,3 +159,17 @@ phpcs --standard=Magento2 --extensions=php,phtml app/code/GetDropFlow/FreeShippi
 | 2 | 同一子主题的购物车页、商品页 | 仍正常 |
 | 3 | Luma、Blank、Hyvä 回归（小购物车/抽屉） | 字号和之前一致，无异常 |
 | 4 | phpcs 再跑 | 错误 0；警告数请记录（本次只处理了 bar.css 的命名颜色，其余注释/静态函数类警告需要清单才能逐条处理） |
+
+---
+## TR-011 ｜ 状态：待派单 ｜ 复测 Breeze 小购物车 + phpcs 警告
+
+**包的位置**：同分支最新提交（见 docs/STATUS.md 顶部）。环境同 TR-009（Breeze Evolution + module-breeze，请 A 把主题重新应用到 fsb247）。
+**测试站注意（ASUS 025 的经验）**：新增主题后要给**所有**主题部署静态文件：`bin/magento setup:static-content:deploy -f en_US es_ES zh_Hans_CN fr_FR`，否则新主题缺静态资源，结果会误判。
+| # | 检查 | 预期 |
+|---|---|---|
+| 1 | Breeze，购物车 $10，不设自定义位置，打开小购物车 | 小购物车里（附加信息区）有进度条；空车时没有 |
+| 2 | 同上，开/关 Better Compatibility 各一次 | 都有条（若只有开着才有，请记录） |
+| 3 | 小购物车自定义位置填一个存在的选择器 | 默认区域的条消失，条出现在填的位置（只一处） |
+| 4 | Breeze 购物车页、商品页（回归） | 仍正常 |
+| 5 | Luma、Blank、Hyvä（回归，含 C1b 的 Test/lumachild） | 仍正常 |
+| 6 | phpcs（`--error-severity=10` 与完整警告） | 错误 0；警告数应明显少于 61（已处理 MethodAnnotation、静态函数、JS 花括号、`parse_url`、`strip_tags`） |

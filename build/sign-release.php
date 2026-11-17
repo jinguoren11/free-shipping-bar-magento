@@ -11,8 +11,10 @@ declare(strict_types=1);
 
 require __DIR__ . '/../Model/Upgrade/UpgradeRejected.php';
 require __DIR__ . '/../Model/Upgrade/ReleaseManifest.php';
+require __DIR__ . '/../Model/Upgrade/ReleaseManifestParser.php';
 
 use GetDropFlow\FreeShippingBar\Model\Upgrade\ReleaseManifest;
+use GetDropFlow\FreeShippingBar\Model\Upgrade\ReleaseManifestParser;
 
 $cmd = $argv[1] ?? '';
 if ($cmd === 'genkey' && isset($argv[2])) {
@@ -47,7 +49,7 @@ if ($cmd === 'sign' && count($argv) === 7) {
         $data['min_from'] = $minFrom;
     }
     $secret = base64_decode(trim((string) file_get_contents($keyFile)), true);
-    $data['signature'] = base64_encode(sodium_crypto_sign_detached(ReleaseManifest::canonical($data), $secret));
+    $data['signature'] = base64_encode(sodium_crypto_sign_detached((new ReleaseManifestParser())->canonical($data), $secret));
     echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n";
     exit(0);
 }

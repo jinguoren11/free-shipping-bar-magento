@@ -40,6 +40,8 @@ class Config
     }
 
     /**
+     * Reads a yes/no module setting.
+     *
      * @param string $key
      * @param int|string|null $storeId
      * @return bool
@@ -50,6 +52,8 @@ class Config
     }
 
     /**
+     * Reads a text module setting.
+     *
      * @param string $key
      * @param int|string|null $storeId
      * @return string
@@ -103,6 +107,8 @@ class Config
     }
 
     /**
+     * Where the bar goes relative to a custom position element.
+     *
      * @param int|string|null $storeId
      * @return string before|after|prepend|append
      */

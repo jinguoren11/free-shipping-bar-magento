@@ -17,6 +17,8 @@ class SelectorSanitizer
     public const DEFAULT_PLACEMENT = 'after';
 
     /**
+     * Cleans a custom position CSS selector; returns an empty string when it is not usable.
+     *
      * @param string $selector
      * @return string empty when the value is not usable
      */
@@ -30,6 +32,8 @@ class SelectorSanitizer
     }
 
     /**
+     * Returns a valid placement word, falling back to "after".
+     *
      * @param string $placement
      * @return string
      */

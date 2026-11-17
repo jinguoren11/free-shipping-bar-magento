@@ -51,12 +51,11 @@ class MoreTools extends Field
         }
         $items = '';
         foreach ($this->catalog->getItems() as $item) {
-            $host = (string) parse_url($item['url'], PHP_URL_HOST);
             $items .= '<li class="gdf-fsb-tools__item"><strong>' . $this->escapeHtml($item['name'])
                 . '</strong> &mdash; '
                 . $this->escapeHtml((string) __($item['description'])) . ' '
                 . '<a href="' . $this->escapeUrl($item['url']) . '" target="_blank" rel="noopener noreferrer">'
-                . $this->escapeHtml((string) __('Learn more at %1', $host))
+                . $this->escapeHtml((string) __('Learn more at %1', $item['host']))
                 . '</a></li>';
         }
         if ($items === '') {

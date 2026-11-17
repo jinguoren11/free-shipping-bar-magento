@@ -26,7 +26,7 @@ define([
      * of this module does not know (Reorder, wishlist, multi shipping, other extensions). Follow it, so the bar
      * can never show the amount of an older cart.
      */
-    function followCart() {
+    var followCart = function () {
         var timer = null,
             lastId = null;
 
@@ -47,7 +47,7 @@ define([
                 customerData.reload([SECTION], false);
             }, 200);
         });
-    }
+    };
 
     return Component.extend({
         // Breeze (Swissup) registers a UI component under this name; Luma ignores it.
@@ -118,13 +118,14 @@ define([
         startPlacing: function () {
             var self = this,
                 tries = 0,
+                attempt,
                 selector = this.selector();
 
             this.placed(false);
             if (!selector || this.kind === 'region') {
                 return;
             }
-            (function attempt() {
+            attempt = function () {
                 if (self.selector() !== selector) {
                     return;
                 }
@@ -137,7 +138,8 @@ define([
                 if (tries < MAX_TRIES) {
                     window.setTimeout(attempt, RETRY_MS);
                 }
-            }());
+            };
+            attempt();
         },
 
         /**

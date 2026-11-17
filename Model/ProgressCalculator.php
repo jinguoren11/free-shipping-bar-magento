@@ -16,6 +16,8 @@ class ProgressCalculator
     public const STATE_DONE = 'done';
 
     /**
+     * Works out the state, the missing amount and the percentage of the progress bar.
+     *
      * @param float $threshold Free shipping minimum (base currency, > 0)
      * @param float $subtotal Cart subtotal after discounts (base currency)
      * @param bool $cartIsEmpty True when the cart has no items

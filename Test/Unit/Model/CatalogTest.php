@@ -19,7 +19,8 @@ class CatalogTest extends TestCase
             $this->assertNotSame('', trim($item['name']));
             $this->assertNotSame('', trim($item['description']));
             $this->assertStringStartsWith('https://', $item['url']);
-            $this->assertNotFalse(parse_url($item['url'], PHP_URL_HOST));
+            $this->assertNotSame('', trim($item['host']));
+            $this->assertSame('https://' . $item['host'], substr($item['url'], 0, 8 + strlen($item['host'])));
             // Marketplace documentation rule: no purchase wording in the panel.
             $this->assertDoesNotMatchRegularExpression('/\b(buy|purchase|subscribe|price|discount|coupon)\b/i', $item['description']);
         }

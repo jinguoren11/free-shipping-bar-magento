@@ -18,6 +18,8 @@ class Channel
     public const CURRENT = 'direct'; // CHANNEL-VALUE
 
     /**
+     * Tells whether this is the download edition (with one-click upgrade).
+     *
      * @return bool
      */
     public function isDirect(): bool

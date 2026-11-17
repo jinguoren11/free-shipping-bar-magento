@@ -16,6 +16,8 @@ class PackageInspector
     public const TOP_FOLDER = 'FreeShippingBar';
 
     /**
+     * Checks the size, checksum and content of a downloaded package before it is unpacked.
+     *
      * @param string $zipPath
      * @param ReleaseManifest $manifest
      * @return void
@@ -42,6 +44,8 @@ class PackageInspector
     }
 
     /**
+     * Checks every entry of the zip and the version declared inside it.
+     *
      * @param \ZipArchive $zip
      * @param string $version
      * @return void
@@ -79,6 +83,8 @@ class PackageInspector
     }
 
     /**
+     * Refuses unsafe or foreign paths inside the zip.
+     *
      * @param string $name entry name inside the zip
      * @return void
      * @throws UpgradeRejected
@@ -101,6 +107,8 @@ class PackageInspector
     }
 
     /**
+     * Refuses symbolic links inside the zip.
+     *
      * @param \ZipArchive $zip
      * @param int $index
      * @return void
