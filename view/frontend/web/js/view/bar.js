@@ -50,6 +50,9 @@ define([
     }
 
     return Component.extend({
+        // Breeze (Swissup) registers a UI component under this name; Luma ignores it.
+        component: 'GetDropFlow_FreeShippingBar/js/view/bar',
+
         defaults: {
             template: 'GetDropFlow_FreeShippingBar/bar',
             position: '',

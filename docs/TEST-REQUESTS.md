@@ -131,3 +131,20 @@ phpcs --standard=Magento2 --extensions=php,phtml app/code/GetDropFlow/FreeShippi
 | 2 | **R1** 订单历史点"再次下单"（Luma、Blank、Hyvä 各一次）；再测 心愿单"全部加入购物车"、多地址结账完成后再购物 | 购物车 $130 时条显示"已达标"、100%，不再是"再买 $50"0% |
 | 3 | **C1** 深色页头的 Luma 子主题，打开小购物车 | 条的文字清晰可读（深色字、浅底卡片） |
 | 4 | **X2** 后台切到西班牙文、中文 | 设置页所有分组名、字段名、说明文字都是对应语言 |
+
+---
+## TR-009 ｜ 状态：待派单（在 TR-008 之后）｜ Breeze 主题（Swissup）实测
+
+**包的位置**：同分支最新提交（见 docs/STATUS.md 顶部）。**只装主包**（`./build/package.sh --channel=direct`），不需要 Hyvä 包；解压到 `app/code/GetDropFlow/FreeShippingBar/`，`module:enable`、`setup:upgrade`、`cache:flush`。
+**环境**：Magento 2.4.7，Breeze 主题（`swissup/breeze-blank` 主题或 Breeze Evolution，主题包公开可装；核心 `swissup/module-breeze`）。在后台 内容 > 设计 > 配置 里启用 Breeze 体验。已知这是我们没碰过的 JS 栈，**请把任何失败原样记录，不要为了通过去改配置**；先测默认配置，再按下表第 6 行测"Better Compatibility"。
+| # | 检查 | 预期 |
+|---|---|---|
+| 1 | 购物车 $10：购物车页、商品页 | 显示"再买 $40 免运费"，条 20% |
+| 2 | 小购物车（打开迷你购物车） | 商品列表附近有进度条；空车时没有 |
+| 3 | 空车：购物车页、商品页 | "满 $50 免运费"，无进度条 |
+| 4 | 加减数量、删商品、用优惠券 | 条实时更新，不刷新页面 |
+| 5 | 浏览器控制台（F12）、360px 宽度 | 无与 gdf / free-shipping-bar 相关的报错；不溢出 |
+| 6 | 若上面任何一项不显示：后台 内容 > 设计 > 配置 > Breeze > 勾选"Better Compatibility"，清缓存再测 | 记录是否因此恢复显示（告诉我哪项需要它） |
+| 7 | 自定义位置兜底：填 `#maincontent`，相对位置"之前" | 条出现在该位置 |
+| 8 | 与 Hyvä/Luma 无关的回归：同一站点换回 Luma 主题 | 仍正常（Breeze 专用布局不影响 Luma） |
+**回传**：每项 通过/未通过、控制台原文、截图。预期在 Breeze 上"可能能用也可能不能用"，请据实报告。

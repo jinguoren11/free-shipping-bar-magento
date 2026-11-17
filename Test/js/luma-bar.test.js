@@ -38,6 +38,8 @@ const sandbox = {
 };
 vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../../view/frontend/web/js/view/bar.js'), 'utf8'), sandbox);
 const Bar = sandbox.exported;
+// Breeze finds the component by this name
+assert.strictEqual(Bar().component, 'GetDropFlow_FreeShippingBar/js/view/bar');
 
 const base = {visible: true, store_code: 'default', lang: 'en', state: 'progress', percent: 20, message: 'm', bar_color: '#123456',
     show_bar: true, show_percent: false, positions: {minicart: true, cart: true, product: true},

@@ -23,12 +23,16 @@ The Hyvä module does nothing on non-Hyvä stores, so you may leave it installed
 | Hyvä (default) + compatibility package | Cart page tested; product page and cart drawer positions reworked after test 014, **retest pending** | Cart page, product page (below the add-to-cart row) and cart drawer (above the items) |
 | Hyvä (default) without the compatibility package | Tested: nothing is shown, no errors | Install the compatibility package |
 | Hyvä (CSP variant) | Written to be CSP friendly (see below); **not yet tested** | |
+| **Breeze** (Swissup) | Support written, **not yet tested** (test TR-009) | Built in (a Breeze-only layout file); no extra package. Cart page and product page like Luma; mini cart through Breeze's own region |
 | Other Luma-based themes (paid or free) | Not yet tested | Usually work; if not, set a custom position |
-| Headless / PWA Studio / custom storefronts | **Not supported** | The module renders inside the Magento storefront |
+| Headless storefronts (PWA Studio, Next.js, Vue Storefront, React) | **Not supported** | Headless storefronts are not supported: the module renders inside the Magento storefront |
 
 ### What the customer sees when the cart is empty
 - **Cart page and product page:** "Free shipping on orders over $50.00" (no progress bar).
 - **Mini cart / cart drawer:** the bar is **not shown** when the cart is empty (only the theme's own "cart is empty" message).
+
+### Breeze
+Breeze keeps Luma's templates but replaces Luma's JavaScript (RequireJS/Knockout) with its own. We read Breeze's public documentation and source (read only) and found that Breeze ships its own Knockout, `uiComponent`, customer-data and cookie support, and mounts `Magento_Ui/js/core/app` components. So the same component file is used and **no separate package is needed**; the module adds a Breeze-only layout file (`breeze_default.xml`, applied only on Breeze stores) that (1) registers the component by name and (2) puts the mini cart bar into Breeze's mini cart region `extraInfo` (Luma's `extra_info` is not shown by Breeze). If the test shows this is not enough, the fallbacks are, in this order: enable Breeze's "Better Compatibility" mode for the module, then a small separate Breeze package like the Hyvä one. The custom position (CSS selector) works as the safety net. **We do not say it works until it has been tested.**
 
 ### Hyvä and CSP
 The Hyvä package has no inline scripts and no inline Alpine expressions: the logic is one external file and the page only uses property and method names, which is what Hyvä's CSP build expects. It needs your Content Security Policy to allow scripts from your own site (`script-src 'self'`).
@@ -72,14 +76,18 @@ Hyvä 兼容包在非 Hyvä 店铺上什么都不做，两种主题并存时可�
 | Hyvä（默认）+ 兼容包 | 购物车页已测；商品页和抽屉位置在测试 014 后重做，**待复测** | 购物车页、商品页（加入购物车行下方）、购物车抽屉（商品列表上方） |
 | Hyvä（默认），不装兼容包 | 已测：什么都不显示，不报错 | 请安装兼容包 |
 | Hyvä（CSP 版） | 按 CSP 友好方式编写（见下），**尚未测试** | |
+| **Breeze**（Swissup） | 已写好支持，**尚未测试**（测试 TR-009） | 内置（Breeze 专用布局文件），不需要额外安装包；购物车页和商品页同 Luma，小购物车走 Breeze 自己的区域 |
 | 其他基于 Luma 的主题（收费/免费） | 尚未测试 | 一般可用；不行就设自定义位置 |
-| 无头 / PWA Studio / 自建前端 | **不支持** | 本模块在 Magento 自带前端里渲染 |
+| 无头前端（PWA Studio、Next.js、Vue Storefront、React） | **不支持** | 无头前端不支持：本模块在 Magento 自带前端里渲染 |
 
 > **Hyvä 必须同时装两个包。** 不装 Hyvä 兼容包，Hyvä 店铺上就没有进度条（不会报错）。
 
 ### 购物车为空时顾客看到什么
 - **购物车页、商品页**："订单满 $50.00 免运费"（无进度条）。
 - **小购物车 / 购物车抽屉**：购物车为空时**不显示进度条**（只显示主题自带的"购物车为空"）。
+
+### Breeze
+Breeze 保留 Luma 模板，但把 Luma 的 JavaScript（RequireJS/Knockout）换成自己的。我们只读了 Breeze 的公开文档和源码：Breeze 自带 Knockout、`uiComponent`、customer-data、cookie 支持，也支持挂载 `Magento_Ui/js/core/app` 组件。所以沿用同一个组件文件，**不需要单独的包**；模块新增一个 Breeze 专用布局文件（`breeze_default.xml`，只在 Breeze 店铺生效）：①按名字注册组件；②把小购物车的条放进 Breeze 的小购物车区域 `extraInfo`（Breeze 不显示 Luma 的 `extra_info`）。若测试发现不够，后备顺序：先为本模块开启 Breeze 的"Better Compatibility"模式，再做一个类似 Hyvä 的小型 Breeze 单独包。自定义位置（CSS 选择器）是兜底。**测试之前我们不宣称它可用。**
 
 ### Hyvä 与 CSP
 Hyvä 兼容包没有内联脚本、没有内联 Alpine 表达式：逻辑在一个外部文件里，页面上只用属性名和方法名（Hyvä CSP 版要求的写法）。需要你的内容安全策略允许本站脚本（`script-src 'self'`）。
