@@ -1,9 +1,26 @@
 # STATUS — 云端电脑D（Free Shipping Progress Bar，Magento 2 免费插件）
 
-**最后更新**：2026-11-16　**P1 修复提交：`ceb052cd`；主题兼容提交：`f9484aa`；**005/006 修复提交：`5a349036`；007 修复提交：`c5ee79da`（TR-008）；Breeze 提交：`417d1cab`（TR-009）；C1b 修复提交：`475689ed`（TR-010）****　（第 6 阶段：一键升级 + 双渠道；下载分流改为 GitHub Releases）　**分支**：`claude/magento-free-shipping-bar-mqm0n2`　**仓库**：jinguoren11/free-shipping-bar-magento
+**最后更新**：2026-11-16　**P1 修复提交：`ceb052cd`；主题兼容提交：`f9484aa`；**005/006 修复提交：`5a349036`；007 修复提交：`c5ee79da`（TR-008）；Breeze 提交：`417d1cab`（TR-009）；C1b 修复提交：`475689ed`（TR-010 通过）；**010 修复提交：`5fc8ac53`（TR-011）****　（第 6 阶段：一键升级 + 双渠道；下载分流改为 GitHub Releases）　**分支**：`claude/magento-free-shipping-bar-mqm0n2`　**仓库**：jinguoren11/free-shipping-bar-magento
 
 ## 当前阶段
 **新铁规矩：每个插件必须一键升级。** 设计已写 `docs/05-一键升级与双渠道设计.md`；**阶段 1 已完成**（渠道构建开关、签名校验、zip 安全检查）；下一步阶段 2（升级引擎）。实机待办：TR-001/002/003（待派单）；TR-004/005（升级成功/失败退回）要等阶段 2–3 实现后才能派单。已读 `from-a:docs/FROM-A/001-owner-decisions.md` 和 README；读过 `docs/TEST-REPORTS.md`：无报告。
+
+## 010 处理完成，提交 `5fc8ac53`（等 TR-011 复测）
+**Breeze 小购物车没有条——原因和修复**
+- 原因（读 Breeze 公开源码 `component-ui.js` 找到）：Breeze 填充 `getRegion('extraInfo')` 的方式是"视图的**直接子组件**里 `displayArea` 等于该区域名的"。我上一版把组件嵌在一个叫 `extraInfo` 的容器下面（深了一层），所以区域是空的；ASUS 看到的是 Luma 备用挂载（`.page-wrapper` 里的 `fsb_minicart`）没有自定义位置就保持为空，符合设计。
+- 修复：`breeze_default.xml` 里把条改成 `minicart_content` 的直接子组件 `free_shipping_bar_breeze`，带 `displayArea: extraInfo`；Luma 的 `extra_info` 下那个组件继续 `componentDisabled`。`BreezeCompatTest` 改成按 XPath 断言这个结构（直接子组件、displayArea、组件名、position、Luma 那个被禁用）。**仍无法在云端验证 Breeze 实际渲染**，以 TR-011 为准。
+- 若 TR-011 仍失败：不再继续猜，按 `docs/THEMES.md` 如实写"Breeze 小购物车不支持，用自定义位置"并同步手册（我已在 THEMES.md 写了当前状态）。
+**phpcs 警告（A 给的 61 条明细）**
+| 类别 | 处理 |
+|---|---|
+| MethodAnnotation（约 50 条） | 原因是方法文档注释缺**一行简短描述**（第一行直接是 `@param`）。给 22 个方法补了描述（`AmountFormatter::format`、`Channel::isDirect`、`Config::flag/value/getPlacement`、`MessageBuilder::build`、`Catalog::getItems`、`ProgressCalculator::calculate`、`SectionDataBuilder::build`、`SectionSettings::get`、`SelectorSanitizer::*`、`PackageInspector::*`、`ReleaseManifest*` 的私有方法）。构造函数和 `@inheritDoc` 本来就没被点名 |
+| StaticFunction（9 条，ReleaseManifest） | 改成实例方法：新增 `Model/Upgrade/ReleaseManifestParser`（`parse/canonical/isNewer/...`），`ReleaseManifest` 只剩数据和常量；31 项原有测试全部改用新类并通过，签名脚本 `build/sign-release.php` 同步并用临时密钥端到端验证过 |
+| Discouraged `parse_url`（MoreTools:54） | 去掉：`Catalog` 条目里直接写 `host`，测试断言 host 与 url 一致 |
+| Discouraged `strip_tags`（AmountFormatter:37） | 去掉：改让币种格式化器直接返回纯文本（`includeContainer=false`）；输出应与之前相同，云端无 Magento 无法单测，TR-011 #1 会看到金额文字 |
+| BraceOnSameLine（bar.js 29/127、hyva-bar.js 15/146） | 具名函数声明改成函数表达式（`var followCart = function () {`、`attempt = function () {`），行为不变，JS 测试全过 |
+| **没改**（Discouraged：`PackageInspector` 的 `filesize`/`clearstatcache`、`ReleaseManifest` 的 `base64_decode` ×2） | 这些都只在下载版的升级代码里（Marketplace 包里没有），签名校验必须解码 base64，文件大小检查要在 PHP 里做；等升级引擎阶段 2 统一改用 Magento 文件系统驱动时一起处理，现在改会动到已测试的安全检查，不值得 |
+- 测试：PHP 66 项（302 断言）+ JS 两套全过；四个包重新打包通过。
+- 另：ASUS 的测试站经验（新增主题后要给所有主题部署静态文件）已写入 TR-011。
 
 ## 009 处理完成，提交 `475689ed`
 - **C1b（`.header.links` 里条只有 2px 高）已修**：原因——Luma 给该容器设了 `font-size: 0`，条用 `font: inherit` 继承到 0px。现在 `.gdf-fsb-mount` 和 `.gdf-fsb-bar` 都自己设 `font-size: var(--gdf-fsb-font-size, 14px)`（行高、字重、字距也显式设；字体族仍继承主题），手机宽度规则改用 `calc(...)`；新增 `BarCssTest`（两个盒子必须有非零字号、不得 `font: inherit`/`font-size: inherit|0`、无命名颜色，注释不计），把旧写法放回去实测变红。DOM 级渲染测试在云端做不了，需 ASUS 用 `Test/lumachild` 复测（TR-010）。THEMES.md 里"字体继承"的描述需微调：现在是字体族继承、字号固定 14px（可用 CSS 变量改）
