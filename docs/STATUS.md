@@ -1,9 +1,19 @@
 # STATUS — 云端电脑D（Free Shipping Progress Bar，Magento 2 免费插件）
 
-**最后更新**：2026-11-16　**P1 修复提交：`ceb052cd`；主题兼容提交：`f9484aa`；**005/006 修复提交：`5a349036`（请 ASUS 用它重装并按 TR-007 复测）****　（第 6 阶段：一键升级 + 双渠道；下载分流改为 GitHub Releases）　**分支**：`claude/magento-free-shipping-bar-mqm0n2`　**仓库**：jinguoren11/free-shipping-bar-magento
+**最后更新**：2026-11-16　**P1 修复提交：`ceb052cd`；主题兼容提交：`f9484aa`；**005/006 修复提交：`5a349036`；007 修复提交：`c5ee79da`（请 ASUS 用它重装并按 TR-008 复测）****　（第 6 阶段：一键升级 + 双渠道；下载分流改为 GitHub Releases）　**分支**：`claude/magento-free-shipping-bar-mqm0n2`　**仓库**：jinguoren11/free-shipping-bar-magento
 
 ## 当前阶段
 **新铁规矩：每个插件必须一键升级。** 设计已写 `docs/05-一键升级与双渠道设计.md`；**阶段 1 已完成**（渠道构建开关、签名校验、zip 安全检查）；下一步阶段 2（升级引擎）。实机待办：TR-001/002/003（待派单）；TR-004/005（升级成功/失败退回）要等阶段 2–3 实现后才能派单。已读 `from-a:docs/FROM-A/001-owner-decisions.md` 和 README；读过 `docs/TEST-REPORTS.md`：无报告。
+
+## 007 处理完成，提交 `c5ee79da`
+| 项 | 处理 |
+|---|---|
+| **X1** phpcs 严重错误 2 个（bar.phtml `XssTemplate.FoundUnescaped`） | 原因：我把转义结果先存进变量再输出，工具要求在输出处转义。两个模板（Luma、Hyvä 兼容包）都改成在每个 `<?=` 处直接 `$escaper->escapeHtmlAttr/escapeUrl(...)`；新增测试扫描所有模板里每个 `<?=` 都必须含转义函数或 `@noEscape`，改回旧写法实测变红。**云端无法跑 phpcs，需 ASUS 确认 0 错误（TR-008 #1）** |
+| **R1** 再次下单后条不更新 | ①`etc/frontend/sections.xml` 加了 `sales/order/reorder`、`sales/guest/reorder`、`multishipping/checkout/overviewPost`、`wishlist/index/cart`、`wishlist/index/allcart`、`checkout/cart/addgroup`（这些动作是否都存在我无法在云端核对 Magento 源码；不存在的条目无害）；②**更稳的兜底**：Luma 组件订阅 Magento 自己的 `cart` 区块，购物车一变（不管是哪条路径，包括别的插件）就重新加载我们的区块（200ms 防抖，同一状态不重复加载）；JS 测试覆盖，去掉订阅实测变红。Hyvä 本来整包数据一起重载，不受影响（待 TR-008 #2 确认） |
+| **C1** 深色页头文字看不见 | 条改为自带浅色卡片：`color #222`、`background #fff`（完成态浅绿底），字体仍继承；可用 CSS 变量 `--gdf-fsb-text/--gdf-fsb-bg/--gdf-fsb-done-bg` 覆盖。注意：这取代了 004 里"文字颜色继承主题"的做法（继承会在深色页头里变白字白底）；`docs/THEMES.md` 已改 |
+| **X2** 后台中西文标签仍是英文 | 原因：i18n 里只有前台文案和少数后台词，系统设置的分组名/字段名/说明没有翻译。补了 es、zh_Hans_CN 各 22 条（所有 label 和 comment，含带 HTML 的说明）；新增测试：system.xml 里每个 label/comment 在 es 和 zh 里都必须有翻译 |
+
+测试：PHP 58 项（278 断言）+ JS 两套全过。TR-008 已登记。
 
 ## 005 / 006 处理完成，提交 `5a349036`
 | 项 | 处理 |
