@@ -1,9 +1,22 @@
 # STATUS — 云端电脑D（Free Shipping Progress Bar，Magento 2 免费插件）
 
-**最后更新**：2026-11-16　**P1 修复提交：`ceb052cd`；主题兼容提交：`f9484aa`；**005/006 修复提交：`5a349036`；007 修复提交：`c5ee79da`（请 ASUS 用它重装并按 TR-008 复测）****　（第 6 阶段：一键升级 + 双渠道；下载分流改为 GitHub Releases）　**分支**：`claude/magento-free-shipping-bar-mqm0n2`　**仓库**：jinguoren11/free-shipping-bar-magento
+**最后更新**：2026-11-16　**P1 修复提交：`ceb052cd`；主题兼容提交：`f9484aa`；**005/006 修复提交：`5a349036`；007 修复提交：`c5ee79da`（TR-008）；Breeze 提交：`417d1cab`（TR-009，排在 TR-008 之后）****　（第 6 阶段：一键升级 + 双渠道；下载分流改为 GitHub Releases）　**分支**：`claude/magento-free-shipping-bar-mqm0n2`　**仓库**：jinguoren11/free-shipping-bar-magento
 
 ## 当前阶段
 **新铁规矩：每个插件必须一键升级。** 设计已写 `docs/05-一键升级与双渠道设计.md`；**阶段 1 已完成**（渠道构建开关、签名校验、zip 安全检查）；下一步阶段 2（升级引擎）。实机待办：TR-001/002/003（待派单）；TR-004/005（升级成功/失败退回）要等阶段 2–3 实现后才能派单。已读 `from-a:docs/FROM-A/001-owner-decisions.md` 和 README；读过 `docs/TEST-REPORTS.md`：无报告。
+
+## 008 第 3 项：Breeze（Swissup）支持，提交 `417d1cab`——**已实现，未测试，不宣称可用**
+**读了什么（只读）**：Breeze 官方文档（breezefront.com，为此放行了该域名）和公开源码 `swissup/module-breeze`、`swissup/breeze-blank`（克隆在仓库之外，没改）。
+**关键发现**
+- Breeze 用 `breeze_*` 布局句柄（类似 Hyvä 的 `hyva_`），自带 Knockout 3.5、`uiComponent`、`customer-data`、`mage/cookies`、`Magento_Ui/js/core/app` 的挂载实现；UI 组件写法"和 Luma 一样，只需加 `component` 属性"，并要在 `breeze_default.xml` 里按名字注册（或开 Better Compatibility）
+- Breeze 的小购物车模板里区域叫 **`extraInfo`**，不是 Luma 的 `extra_info`——所以 Luma 的小购物车挂载在 Breeze 里不会显示
+**决定（做法）**：**不做单独的兼容包**，沿用同一个组件文件（只加了 Breeze 要求的 `component` 属性，Luma 忽略它），主模块新增 Breeze 专用布局文件 `view/frontend/layout/breeze_default.xml`（只在 Breeze 店铺生效，Luma/Hyvä 不受影响）：①按名字注册组件到 `default` 包；②关掉 Luma 的 `extra_info` 那个组件，改把同一组件放进 Breeze 的 `extraInfo` 区域。购物车页/商品页继续用原来的 `Magento_Ui/js/core/app` 挂载（Breeze 支持）。自定义位置（CSS 选择器）仍是兜底。
+**后备方案（若 TR-009 失败）**：先为本模块开 Breeze 的"Better Compatibility"；再不行做一个类似 Hyvä 的小型 Breeze 单独包（Alpine 之外用 Breeze 原生写法）。
+**没做**：没有预渲染 KO 模板（Breeze 文档说那只是提速；我们的模板在 `web/template`，预渲染路径解析我无法验证，做了反而可能为空）。
+**测试**：PHP 61 项（含 `BreezeCompatTest`：布局注册名与 JS 声明名一致、Breeze 句柄不影响其他主题）+ JS 两套（新增断言组件名）全过。**这些只是静态一致性检查，不证明在 Breeze 里能跑。**
+**文档**：`docs/THEMES.md` 加 Breeze 小节和表格行（"已写好支持，尚未测试"）；无头前端写明"不支持"（8 第 4 项）；用户手册**暂不提** Breeze（测试通过前不宣称）。
+**TR-009** 已写入 `docs/TEST-REQUESTS.md`（8 项，含"Better Compatibility"对照和回退 Luma 回归）。
+**我无法确认的点**：Breeze 是否按我写的 `extraInfo` 渲染 jsLayout 子组件；`componentDisabled` 是否能阻止 Luma 区域组件；KO 模板 `GetDropFlow_FreeShippingBar/bar` 在 Breeze 里是否能被取到（若取不到，回退方案见上）。
 
 ## 007 处理完成，提交 `c5ee79da`
 | 项 | 处理 |
