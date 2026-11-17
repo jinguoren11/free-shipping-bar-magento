@@ -1,9 +1,15 @@
 # STATUS — 云端电脑D（Free Shipping Progress Bar，Magento 2 免费插件）
 
-**最后更新**：2026-11-16　**P1 修复提交：`ceb052cd`；主题兼容提交：`f9484aa`；**005/006 修复提交：`5a349036`；007 修复提交：`c5ee79da`（TR-008）；Breeze 提交：`417d1cab`（TR-009，排在 TR-008 之后）****　（第 6 阶段：一键升级 + 双渠道；下载分流改为 GitHub Releases）　**分支**：`claude/magento-free-shipping-bar-mqm0n2`　**仓库**：jinguoren11/free-shipping-bar-magento
+**最后更新**：2026-11-16　**P1 修复提交：`ceb052cd`；主题兼容提交：`f9484aa`；**005/006 修复提交：`5a349036`；007 修复提交：`c5ee79da`（TR-008）；Breeze 提交：`417d1cab`（TR-009）；C1b 修复提交：`475689ed`（TR-010）****　（第 6 阶段：一键升级 + 双渠道；下载分流改为 GitHub Releases）　**分支**：`claude/magento-free-shipping-bar-mqm0n2`　**仓库**：jinguoren11/free-shipping-bar-magento
 
 ## 当前阶段
 **新铁规矩：每个插件必须一键升级。** 设计已写 `docs/05-一键升级与双渠道设计.md`；**阶段 1 已完成**（渠道构建开关、签名校验、zip 安全检查）；下一步阶段 2（升级引擎）。实机待办：TR-001/002/003（待派单）；TR-004/005（升级成功/失败退回）要等阶段 2–3 实现后才能派单。已读 `from-a:docs/FROM-A/001-owner-decisions.md` 和 README；读过 `docs/TEST-REPORTS.md`：无报告。
+
+## 009 处理完成，提交 `475689ed`
+- **C1b（`.header.links` 里条只有 2px 高）已修**：原因——Luma 给该容器设了 `font-size: 0`，条用 `font: inherit` 继承到 0px。现在 `.gdf-fsb-mount` 和 `.gdf-fsb-bar` 都自己设 `font-size: var(--gdf-fsb-font-size, 14px)`（行高、字重、字距也显式设；字体族仍继承主题），手机宽度规则改用 `calc(...)`；新增 `BarCssTest`（两个盒子必须有非零字号、不得 `font: inherit`/`font-size: inherit|0`、无命名颜色，注释不计），把旧写法放回去实测变红。DOM 级渲染测试在云端做不了，需 ASUS 用 `Test/lumachild` 复测（TR-010）。THEMES.md 里"字体继承"的描述需微调：现在是字体族继承、字号固定 14px（可用 CSS 变量改）
+- **phpcs 清理（可选项）**：只做了能确定的一项：`bar.css` 第 21 行的命名颜色（`red`/`blue`/`transparent`）改为十六进制/rgba。方法注释、`static` 函数、JS 花括号这几类我**看不到 ASUS 报告第 1 节的明细**（报告不在我的仓库），不盲改；若 A 把那一节贴进 `docs/FROM-A/` 我按清单逐条处理
+- **Breeze（008 第 3 项）早已完成**：提交 `417d1cab`，见下节；TR-009 待派单
+- 测试：PHP 65 项 + JS 两套全过；四个包重新打包通过
 
 ## 008 第 3 项：Breeze（Swissup）支持，提交 `417d1cab`——**已实现，未测试，不宣称可用**
 **读了什么（只读）**：Breeze 官方文档（breezefront.com，为此放行了该域名）和公开源码 `swissup/module-breeze`、`swissup/breeze-blank`（克隆在仓库之外，没改）。
