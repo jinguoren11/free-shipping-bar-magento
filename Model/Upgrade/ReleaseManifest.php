@@ -31,6 +31,8 @@ class ReleaseManifest
     public $minFrom;
     /** @var array */
     public $notes;
+    /** @var string the signed text this was read from (kept so a cached copy can be verified again) */
+    public $rawJson;
 
     /**
      * @param string $version
@@ -39,6 +41,7 @@ class ReleaseManifest
      * @param int $bytes
      * @param string|null $minFrom
      * @param array $notes language code => text
+     * @param string $rawJson
      */
     public function __construct(
         string $version,
@@ -46,7 +49,8 @@ class ReleaseManifest
         string $sha256,
         int $bytes,
         ?string $minFrom,
-        array $notes
+        array $notes,
+        string $rawJson = ''
     ) {
         $this->version = $version;
         $this->url = $url;
@@ -54,5 +58,6 @@ class ReleaseManifest
         $this->bytes = $bytes;
         $this->minFrom = $minFrom;
         $this->notes = $notes;
+        $this->rawJson = $rawJson;
     }
 }

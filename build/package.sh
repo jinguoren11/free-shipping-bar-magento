@@ -27,7 +27,7 @@ if [ "$MODULE" = hyva ]; then
     FILES=(ViewModel etc view registration.php composer.json README.md)
 else
     NAME=getdropflow-module-free-shipping-bar; TOP=FreeShippingBar; SRC=.
-    FILES=(Block CustomerData Model etc view i18n registration.php composer.json LICENSE README.md)
+    FILES=(Block Console Controller CustomerData Model etc view i18n registration.php composer.json LICENSE README.md)
 fi
 OUT="dist/${NAME}-${VERSION}-${CHANNEL}.zip"
 STAGE="dist/stage-${MODULE}-${CHANNEL}"
@@ -42,7 +42,7 @@ if [ "$CHANNEL" = marketplace ]; then
     # 0) promotion-free README for the Marketplace edition
     [ "$MODULE" = main ] && cp README.marketplace.md "$MOD/README.md"
     # 1) remove direct-only files and blocks
-    rm -rf "$MOD/Model/Upgrade"
+    rm -rf "$MOD/Model/Upgrade" "$MOD/Console" "$MOD/Controller"
     python3 -I - "$MOD" <<'PY'
 import sys, re, pathlib
 root = pathlib.Path(sys.argv[1])
@@ -54,6 +54,8 @@ for p in list(root.rglob('*.xml')) + list(root.rglob('*.phtml')):
         p.write_text(n, encoding='utf-8')
 # direct-only PHP/JS/templates are listed here (none yet) and removed:
 for rel in ['Block/Adminhtml/System/Config/UpgradeCard.php',
+            'etc/di.xml',
+            'etc/adminhtml/routes.xml',
             'Block/Adminhtml/System/Config/StarLink.php',
             'view/adminhtml/templates/upgrade-card.phtml',
             'view/adminhtml/web/js/upgrade-card.js']:

@@ -173,3 +173,28 @@ phpcs --standard=Magento2 --extensions=php,phtml app/code/GetDropFlow/FreeShippi
 | 4 | Breeze 购物车页、商品页（回归） | 仍正常 |
 | 5 | Luma、Blank、Hyvä（回归，含 C1b 的 Test/lumachild） | 仍正常 |
 | 6 | phpcs（`--error-severity=10` 与完整警告） | 错误 0；警告数应明显少于 61（已处理 MethodAnnotation、静态函数、JS 花括号、`parse_url`、`strip_tags`） |
+
+---
+## TR-012 ｜ 状态：待派单 ｜ 一键升级引擎（阶段 2–3）的实机测试 = TR-004 / TR-005 ｜ 同时复测 TR-011
+
+**包**：分支 `fsb-fixes`（PR 里）最新提交；`./build/package.sh --channel=direct` 的 zip。**只用测试站，不碰正式站、不碰真实 GitHub。**
+**为什么要本地服务器**：仓库是私有的，匿名读不到 Releases；升级器默认只认 `github.com/jinguoren11/free-shipping-bar-magento` 的地址。测试用的后门只有一个：环境变量 `GETDROPFLOW_FSB_TEST_RELEASES=http://127.0.0.1:端口/`（只接受本机地址）；要让 web 和命令行都看到它（php-fpm 的 `env[...]` 和 shell 里都设）。
+**准备**
+1. 用 `php build/sign-release.php genkey` 生成**测试用**密钥对；把测试公钥写进**测试包**里的 `Model/Upgrade/ReleaseKey.php`（只改测试包，不改仓库；正式密钥是待老任批准的 D 项）。
+2. 先装版本 1.0.0 的测试包（手动安装）。再用 `build/package.sh` 把 `composer.json` 里的版本临时改成 1.0.1 打一个 1.0.1 的 direct 包（只在测试机上改，不提交）。
+3. 本机起一个静态文件服务（例如 `python3 -m http.server 8099`），目录里放：`latest.json`（模仿 GitHub 的 `releases/latest` 返回：`{"assets":[{"name":"manifest.json","browser_download_url":"http://127.0.0.1:8099/manifest.json"}]}`）、`manifest.json`（用 `sign-release.php` 签名，`url` 指向 `http://127.0.0.1:8099/pkg.zip`，sha256/字节数与 1.0.1 zip 一致）、`pkg.zip`。
+| # | 检查 | 预期 |
+|---|---|---|
+| 1 | 打开设置页（未点按钮） | 顶部"更新"卡片：已安装版本 1.0.0，提示"点检查更新才联网"；服务器日志里没有任何请求 |
+| 2 | 点"检查更新" | 显示最新版本 1.0.1 和更新说明（按后台语言 en/es/zh）；有"立即升级（一键）"按钮 |
+| 3 | 立即点"检查更新"第二次 | 10 分钟内不再请求服务器（看服务器日志） |
+| 4 | **TR-004 成功**：点"立即升级"并确认 | 卡片显示第几步/共几步；维护模式出现几分钟；完成后"已升级到 1.0.1"，刷新后版本 1.0.1；进度条在三个主题上仍正常；`var/getdropflow_fsb_upgrade/previous-FreeShippingBar` 已删除；维护模式已退出 |
+| 5 | **TR-005 失败退回 A**：把 manifest 里 sha256 改错（重新签名）再升级 | 下载后立即拒绝，卡片写原因；**没有进入维护模式**，文件没动 |
+| 6 | **TR-005 失败退回 B**：1.0.1 包里放一个会让 `setup:upgrade` 报错的文件（例如损坏的 `etc/module.xml` 版本不匹配或语法错误的 `etc/di.xml`） | 自动退回 1.0.0，卡片显示"已退回"和原因，维护模式已退出，商城正常 |
+| 7 | 签名不对（用另一把密钥签 manifest） | 卡片写"版本信息不是作者签名的"，没有下载 |
+| 8 | 中途杀掉后台进程（`pkill -f getdropflow:fsb:upgrade`）在"安装"步骤 | 1 小时后（或把状态文件时间改旧）再打开卡片：自动退回旧版并退出维护模式 |
+| 9 | 站点在维护模式（升级前手动 `maintenance:enable`）时升级 | 升级完成后仍保持维护模式（不替老任关掉） |
+| 10 | 模块装在别处/文件夹只读 | 卡片灰掉并写明原因，给手动升级说明，不动任何文件 |
+| 11 | Marketplace 包（`--channel=marketplace`）装上 | 设置页没有"更新"卡片；`grep -r` 没有 curl/ZipArchive/api.github.com；命令列表里没有 `getdropflow:fsb:upgrade` |
+| 12 | phpcs 再跑 | 错误 0；记录警告清单 |
+同时做 **TR-011**（Breeze 小购物车、phpcs、回归）。
