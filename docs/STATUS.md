@@ -2,6 +2,15 @@
 
 **最后更新**：2026-11-16　**P1 修复提交：`ceb052cd`；主题兼容提交：`f9484aa`；**005/006 修复提交：`5a349036`；007 修复提交：`c5ee79da`（TR-008）；Breeze 提交：`417d1cab`（TR-009）；C1b 修复提交：`475689ed`（TR-010 通过）；**010 修复提交：`5fc8ac53`（TR-011）****　（第 6 阶段：一键升级 + 双渠道；下载分流改为 GitHub Releases）　**分支**：`claude/magento-free-shipping-bar-mqm0n2`　**仓库**：jinguoren11/free-shipping-bar-magento
 
+## 2026-11-18 总管 A 复盘与本轮修改（分支 `fsb-fixes`，PR 待总管合并）
+**真实状态**：最新已测提交 `432b6fa`（ASUS 025）：Luma / Blank / Hyvä（含 CSP）/ 自建子主题 / Breeze 购物车页+商品页 全部通过；phpcs 错误 0。**唯一实测未通过的问题是 Breeze 小购物车没有条**（025 的 TR-009 #2）。D 已在 `5fc8ac53` 改成"直接子组件 + displayArea extraInfo"，**还没有人实测**（TR-011）。Luma 小购物车没有问题（ASUS 025 回归通过）。
+**本轮（云端，已读 Breeze 源码核对）**
+1. Breeze 修复核对：读了 `swissup/module-breeze` 的 `component-ui.js`、`minicart.phtml`：区域 `extraInfo` 只由 minicart_content 的直接子组件（`displayArea` 相同）填充；`5fc8ac53` 的结构与源码一致，代码不再改动，等 TR-011。若 TR-011 仍失败，不再猜：THEMES.md 写"Breeze 小购物车请用自定义位置"。
+2. **一键升级阶段 2 + 3 已实现**（之前是空白，违反铁规矩）：`Model/Upgrade/` 下引擎（`UpgradeRunner` 逆序回退、`UpgradeStatus`、`Preflight` 预检、`ReleaseSource`+6 小时缓存+10 分钟间隔、`DownloadStep/ExtractStep/MaintenanceStep/SwapStep/CommandsStep/VerifyStep`、被杀进程自动恢复、不替老任关掉原本就开着的维护模式）、`Console/Command/UpgradeCommand`（后台进程）、`Controller/Adminhtml/Upgrade/{Check,Start,Status}`、设置页"更新"卡片（三语）、`etc/di.xml`、`etc/adminhtml/routes.xml`。全部只在 direct 版；`build/package.sh` 的 Marketplace 包已确认不含这些文件，扫描通过。
+3. 单元测试 66 → 84 项（含不 mock 的整套升级：成功、setup:upgrade 失败退回、验证失败退回、下载被篡改、缓存与间隔、签名不对、被杀恢复、维护模式、预检原因）；把 `SwapStep::undo` 改坏实测变红。
+4. 文档：`docs/user-guide/UPGRADE-DOWNLOAD-EDITION.en.md`（新）、中文教程"更新版本"一节、CHANGELOG、`docs/05`；TR-012 写入 `docs/TEST-REQUESTS.md`。
+**没有做 / 仍是风险**：升级引擎和卡片**从未在真实 Magento 上跑过**（TR-012）；`ReleaseKey` 公钥仍为空，所以卡片显示"未开启"、不联网（待批准项 D）；仓库私有，真实 GitHub 路径无法实测，测试用本机服务器（环境变量 `GETDROPFLOW_FSB_TEST_RELEASES`，只认 127.0.0.1）；4 条 phpcs 警告（升级代码里的 filesize/clearstatcache/base64_decode）仍在，另有新增代码的少量行长警告。
+
 ## 当前阶段
 **新铁规矩：每个插件必须一键升级。** 设计已写 `docs/05-一键升级与双渠道设计.md`；**阶段 1 已完成**（渠道构建开关、签名校验、zip 安全检查）；下一步阶段 2（升级引擎）。实机待办：TR-001/002/003（待派单）；TR-004/005（升级成功/失败退回）要等阶段 2–3 实现后才能派单。已读 `from-a:docs/FROM-A/001-owner-decisions.md` 和 README；读过 `docs/TEST-REPORTS.md`：无报告。
 

@@ -63,7 +63,8 @@ class ReleaseManifestParser
             $data['sha256'],
             $data['bytes'],
             $data['min_from'] ?? null,
-            $this->cleanNotes((array) ($data['notes'] ?? []))
+            $this->cleanNotes((array) ($data['notes'] ?? [])),
+            $json
         );
     }
 
