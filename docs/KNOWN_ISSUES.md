@@ -1,0 +1,15 @@
+# Known issues (Free Shipping Progress Bar)
+
+Every problem found in testing is recorded here and assigned to a fix.
+
+| # | Found by | Problem | Fix | Status |
+|---|---|---|---|---|
+| 068-1 | ASUS 068 | Critical: the page wrote `running` before the background command started, whose own pre-flight then refused with ALREADY_RUNNING; one-click upgrade never started. Unit tests did not cover the page-to-command handoff. | New state `queued`; worker pre-flight ignores `queued`; `UpgradeService::queue()` / `work()` are the two halves and `testQueueThenWorkerHandoffRunsTheUpgrade` runs both on one status file. | Fixed in `fsb-fixes-2`, retest TR-013 #1 |
+| 068-2 | ASUS 068 | Background command used `PHP_BINDIR/php` (8.5) while the site runs 8.3; no failure message. | `PhpLocator` (same major.minor, `php8.3`, `php83`, version-checked `php`); `PHP_NOT_FOUND` reason; `queued` older than 30 s becomes `failed/START_TIMEOUT`. | Fixed, TR-013 #1, #3, #4 |
+| 068-3 | ASUS 068 | Rollback ran the full rebuild even when no file was changed. | Marker interface `ChangesShop` (SwapStep, CommandsStep); rebuild only if one was started. | Fixed, TR-013 #5 |
+| 068-4 | ASUS 068 | No card text for BAD_CHECKSUM and other download/unpack codes; "restored" said when nothing changed. | Texts for every code in en/es/zh, new state `failed` ("nothing was changed"); `UpgradeTextsTest` scans the source for codes. | Fixed, TR-013 #5, #9 |
+| 068-5 | ASUS 068 | After a kill the admin is 503 and the card cannot recover; leftovers `new/`, `package.zip`. | Cron every 5 min (`Cron/RecoverUpgrade`), `--recover` documented (also retries after needs_manual), dead-process detection by pid, worker restores a dead upgrade first, leftovers removed. | Fixed, TR-013 #7, #11 |
+| 068-6 | ASUS 068 | Step names English only; red Magento error bar during maintenance 503. | Step names translated on the card; polling with `global: false` and a "maintenance mode, continuing by itself" line. | Fixed, TR-013 #2 |
+| 068-7 | ASUS 068 | phpcs errors (proc_open, exec, @rename, @disk_free_space) and warnings 95. | Magento `Shell` service for commands; file work in `Step\Files` with justified phpcs:disable (download edition only); JS named functions to expressions; line length; interface names. | Fixed for errors; warnings count to be recorded in TR-013 #12 |
+| 068-8 | ASUS 068 | Documentation of the behaviours above. | `docs/user-guide/UPGRADE-DOWNLOAD-EDITION.en.md`, `客户教程.zh.md`, `docs/05`, CHANGELOG. | Done |
+| 068-9 | ASUS 068 (observation) | After changing the admin config a browser that already visited keeps the old bar settings in localStorage (Magento section cache). | Normal Magento behaviour; testers clear localStorage after config changes. | Documented only |

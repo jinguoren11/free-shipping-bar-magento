@@ -9,6 +9,7 @@ namespace GetDropFlow\FreeShippingBar\Model\Upgrade;
 /**
  * One reversible step of an upgrade.
  */
+// phpcs:ignore Magento2.NamingConvention.InterfaceName -- short name kept, the engine is Download-edition only
 interface UpgradeStep
 {
     /**

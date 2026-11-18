@@ -65,8 +65,6 @@ class DownloadStep implements UpgradeStep
      */
     public function undo(): void
     {
-        if (is_file($this->zipPath)) {
-            unlink($this->zipPath);
-        }
+        Files::remove($this->zipPath);
     }
 }

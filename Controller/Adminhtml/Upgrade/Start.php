@@ -6,12 +6,12 @@ declare(strict_types=1);
 
 namespace GetDropFlow\FreeShippingBar\Controller\Adminhtml\Upgrade;
 
-use GetDropFlow\FreeShippingBar\Model\Upgrade\UpgradeStatus;
+use GetDropFlow\FreeShippingBar\Model\Upgrade\UpgradeRejected;
 use Magento\Framework\Controller\ResultInterface;
 
 /**
- * "One-click upgrade": repeats the pre-flight on the server and starts the background worker. The worker takes the
- * release from the verified cache, never from anything the browser sends.
+ * "One-click upgrade": repeats the pre-flight on the server, writes "queued" and starts the background
+ * worker. The worker takes the release from the verified cache, never from anything the browser sends.
  */
 class Start extends AbstractUpgrade
 {
@@ -31,10 +31,22 @@ class Start extends AbstractUpgrade
             $data['started'] = false;
             return $this->json->create()->setData($data);
         }
-        $service->markQueued($found['manifest']);
-        exec($this->factory->backgroundCommand()); // phpcs:ignore Magento2.Security.InsecureFunction
+        $reasons = $service->queue($found['manifest'], $this->factory->serverFacts());
+        if ($reasons) {
+            $data['blocked_by'] = $reasons;
+            $data['started'] = false;
+            return $this->json->create()->setData($data);
+        }
+        try {
+            $this->factory->startInBackground();
+        } catch (UpgradeRejected $e) {
+            $service->markStartFailed($e->reason);
+            $data['started'] = false;
+            $data['status'] = $service->statusSummary();
+            return $this->json->create()->setData($data);
+        }
         $data['started'] = true;
-        $data['status'] = ['state' => UpgradeStatus::RUNNING] + $service->statusSummary();
+        $data['status'] = $service->statusSummary();
 
         return $this->json->create()->setData($data);
     }

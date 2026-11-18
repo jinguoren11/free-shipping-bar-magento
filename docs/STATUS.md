@@ -2,6 +2,9 @@
 
 **最后更新**：2026-11-16　**P1 修复提交：`ceb052cd`；主题兼容提交：`f9484aa`；**005/006 修复提交：`5a349036`；007 修复提交：`c5ee79da`（TR-008）；Breeze 提交：`417d1cab`（TR-009）；C1b 修复提交：`475689ed`（TR-010 通过）；**010 修复提交：`5fc8ac53`（TR-011）****　（第 6 阶段：一键升级 + 双渠道；下载分流改为 GitHub Releases）　**分支**：`claude/magento-free-shipping-bar-mqm0n2`　**仓库**：jinguoren11/free-shipping-bar-magento
 
+## 2026-11-18 ASUS 068 复测后的修复（分支 `fsb-fixes-2`，PR 待总管合并）
+ASUS 068：TR-011 #6 与 TR-012 #12 失败（phpcs），TR-012 #4/#6/#8/#9 只有给测试包打补丁才能跑。本轮修了问题 1–7（见 `docs/KNOWN_ISSUES.md` 逐条对应），问题 8 写进文档。要点：新状态 `queued` 修好"点升级后进程被自己拒绝"（并加了走真实 页面→命令 衔接的测试）；后台 PHP 取与网站相同版本；30 秒没起来就报错；没动过文件的失败不重建、不说"已恢复"（新状态 `failed`）；所有原因码/步骤名三语；维护模式 503 不再冒红条；被杀后 cron 每 5 分钟 + `--recover` 恢复并清残留；`proc_open/exec/@rename/@disk_free_space` 已换成 Magento Shell / 集中的文件类。单元测试 84 → 99 项，JS 两套通过，四个包重新打包，Marketplace 包仍不含任何升级代码。**仍未在真实 Magento 上跑过 Shell 调用，等 TR-013（原样包，不许打补丁）。发布（生成密钥、GitHub 发版、仓库公开）必须等 TR-013 通过后。**
+
 ## 2026-11-18 总管 A 复盘与本轮修改（分支 `fsb-fixes`，PR 待总管合并）
 **真实状态**：最新已测提交 `432b6fa`（ASUS 025）：Luma / Blank / Hyvä（含 CSP）/ 自建子主题 / Breeze 购物车页+商品页 全部通过；phpcs 错误 0。**唯一实测未通过的问题是 Breeze 小购物车没有条**（025 的 TR-009 #2）。D 已在 `5fc8ac53` 改成"直接子组件 + displayArea extraInfo"，**还没有人实测**（TR-011）。Luma 小购物车没有问题（ASUS 025 回归通过）。
 **本轮（云端，已读 Breeze 源码核对）**

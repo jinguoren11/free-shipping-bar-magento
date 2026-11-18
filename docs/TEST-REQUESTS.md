@@ -198,3 +198,23 @@ phpcs --standard=Magento2 --extensions=php,phtml app/code/GetDropFlow/FreeShippi
 | 11 | Marketplace 包（`--channel=marketplace`）装上 | 设置页没有"更新"卡片；`grep -r` 没有 curl/ZipArchive/api.github.com；命令列表里没有 `getdropflow:fsb:upgrade` |
 | 12 | phpcs 再跑 | 错误 0；记录警告清单 |
 同时做 **TR-011**（Breeze 小购物车、phpcs、回归）。
+
+---
+## TR-013 ｜ 状态：待派单 ｜ 在**原样的包**上重跑 TR-012 #4–#9 + phpcs（修复 ASUS 068 的问题 1–7）
+
+**包**：分支 `fsb-fixes-2`（PR 里）最新提交；`./build/package.sh --channel=direct`（及 marketplace、hyva）。**必须是原样的包：不许给测试包打任何补丁**；测试用公钥仍可只替换 `Model/Upgrade/ReleaseKey.php`（测试公钥，仓库不动），本机发布服务和环境变量同 TR-012。PHP 环境刻意保持 068 的样子：**php-fpm 是 8.3，`/usr/bin/php` 默认是 8.5**（不要改默认 php，这是在测问题 2）。
+| # | 检查 | 预期 |
+|---|---|---|
+| 1 | 原样包：点"立即升级"并确认（= TR-012 #4） | 卡片立刻显示"第 1 步，共 6 步"并往下走（**不再停在"第 0 步 Starting"**，手动跑 `getdropflow:fsb:upgrade` 也不再报 ALREADY_RUNNING）；后台进程用的是 php8.3（`ps` 里看）；完成后 1.0.1，`previous-FreeShippingBar` 已删，维护模式已退出 |
+| 2 | 步骤名：把后台语言切到中文和西语各走一次升级 | 步骤名是中文/西语（"下载并检查新版本"…），不是英文；维护模式的 2 分钟里卡片显示"维护模式中，会自动继续"，**页面顶部没有 Magento 的红色错误条**；结束后自动显示"完成" |
+| 3 | 让 php8.3 暂时找不到（例如临时把 `/usr/bin/php8.3` 改名，php-fpm 不受影响，**之后改回**） | 卡片/按钮给出原因"没有找到与本网站相同版本的 PHP"（`PHP_NOT_FOUND`），不升级；改回后正常 |
+| 4 | 让后台进程起不来（例如临时让 `bin/magento` 不可执行或让命令立即退出） | 30 秒内卡片写"升级进程 30 秒内没有启动，没有做任何改动"；再点可重试；**不再出现 1 小时内一直"已有升级在运行"** |
+| 5 | sha256 改错并重新签名后升级（= TR-012 #5） | 卡片写"下载的文件与校验码不一致……没有做任何改动"（不写"已恢复"）；**没有**进维护模式；日志里**没有** `setup:upgrade`/`di:compile`/`static-content:deploy`/`cache:flush`（可以用 `ps`/命令日志/generated 目录时间戳确认没重建）；`var/getdropflow_fsb_upgrade/` 里没有 `package.zip`/`new/` |
+| 6 | 1.0.1 包里 `etc/di.xml` 语法错误（= TR-012 #6，**原样包**，不打补丁） | 自动退回 1.0.0，卡片"升级没有成功，已恢复为你之前的版本"+原因；维护模式退出；前台 200 |
+| 7 | 在"安装"步骤 `kill -9` 工作进程和 setup 子进程；**后台 IP 不在维护模式豁免名单**（= TR-012 #8） | ①什么都不做，等 cron（先确认 `bin/magento cron:run` 在跑，或手动 `cron:run` 两次）：约 5–7 分钟内自动恢复，版本回 1.0.0，维护模式退出，`new/`、`package.zip` 已清；②或者命令行 `php8.3 bin/magento getdropflow:fsb:upgrade --recover`：同样结果；③恢复后打开后台，卡片显示"升级被中断……已恢复" |
+| 8 | 站点本来就在维护模式时升级（= TR-012 #9，**原样包**） | 升级完成后维护模式仍开着，豁免 IP 也保留；卡片"完成" |
+| 9 | 全部语言（en/es/zh）：BAD_CHECKSUM、BAD_ZIP（把 pkg.zip 换成文本文件并改 manifest）、DOWNLOAD_FAILED（让 pkg.zip 404）、签名不对 各触发一次 | 每种都有该语言的原因文字，且文字不说"已恢复"（因为没改动） |
+| 10 | Marketplace 包（= TR-012 #11） | 仍没有任何升级代码：包里没有 `Cron/`、`etc/crontab.xml`、`Console/`、`Controller/`、`Model/Upgrade/`；`bin/magento list` 没有该命令；`cron_schedule` 里没有 `getdropflow_fsb_recover_upgrade` |
+| 11 | 直接版装好后 `cron_schedule` | 有 `getdropflow_fsb_recover_upgrade`，没有升级在跑时每次都是 success 且瞬间完成（不做任何事） |
+| 12 | phpcs：Magento2 标准，直接版包解开后跑 `--error-severity=10`，**再用 `--ignore-annotations` 跑一次** | 错误 0（`--ignore-annotations` 下 `proc_open`/`exec`/`@rename`/`@disk_free_space` 这四类已经真的不存在）；请记录警告总数和按类别分布（旧数：完整跑警告 95） |
+同时回归：Luma / Blank / Hyvä / Breeze 的条（升级代码不应影响前台）。

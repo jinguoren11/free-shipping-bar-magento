@@ -31,7 +31,7 @@ class UpgradeRunner
      * @param callable $rebuild called after a rollback to make the shop run on the old code again
      * @param callable $finish always called at the end (for example: leave maintenance mode)
      * @param array $extra extra status fields
-     * @return string resulting state: done, rolled_back or needs_manual
+     * @return string resulting state: done, failed (nothing changed), rolled_back or needs_manual
      */
     public function run(array $steps, callable $rebuild, callable $finish, array $extra = []): string
     {
@@ -72,6 +72,13 @@ class UpgradeRunner
     ): string {
         $reason = $cause instanceof UpgradeRejected ? $cause->reason : 'STEP_FAILED';
         $extra['reason'] = $reason;
+        // The shop is only rebuilt when a step that changes its code or generated files was started. A failure
+        // before that (download, checksum, unpack, maintenance switch) changes nothing, so nothing is rebuilt.
+        $changed = false;
+        foreach ($started as $step) {
+            $changed = $changed || $step instanceof ChangesShop;
+        }
+        $extra['changed'] = $changed;
         $ok = true;
         foreach (array_reverse($started) as $step) {
             try {
@@ -80,13 +87,16 @@ class UpgradeRunner
                 $ok = false;
             }
         }
-        try {
-            $rebuild();
-        } catch (\Throwable $rebuildError) {
-            $ok = false;
+        if ($changed) {
+            try {
+                $rebuild();
+            } catch (\Throwable $rebuildError) {
+                $ok = false;
+            }
         }
         if (!$ok) {
             // maintenance mode is kept on purpose: the shop must not run on half-restored code
+            $extra['changed'] = true;
             $this->status->write(
                 UpgradeStatus::NEEDS_MANUAL,
                 $total,
@@ -98,6 +108,17 @@ class UpgradeRunner
             return UpgradeStatus::NEEDS_MANUAL;
         }
         $this->finishQuietly($finish);
+        if (!$changed) {
+            $this->status->write(
+                UpgradeStatus::FAILED,
+                $total,
+                $total,
+                '',
+                'The upgrade stopped before anything on the shop was changed.',
+                $extra
+            );
+            return UpgradeStatus::FAILED;
+        }
         $this->status->write(
             UpgradeStatus::ROLLED_BACK,
             $total,

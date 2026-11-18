@@ -6,6 +6,7 @@ declare(strict_types=1);
 
 namespace GetDropFlow\FreeShippingBar\Test\Unit\Model\Upgrade;
 
+use GetDropFlow\FreeShippingBar\Model\Upgrade\ChangesShop;
 use GetDropFlow\FreeShippingBar\Model\Upgrade\CommandRunner;
 use GetDropFlow\FreeShippingBar\Model\Upgrade\HttpClient;
 use GetDropFlow\FreeShippingBar\Model\Upgrade\PackageInspector;
@@ -62,11 +63,15 @@ class UpgradeEngineTest extends TestCase
         return $path;
     }
 
-    private function signedManifest(string $zip, string $version, ?string $minFrom = null): string
-    {
+    private function signedManifest(
+        string $zip,
+        string $version,
+        ?string $minFrom = null,
+        ?string $sha256 = null
+    ): string {
         $data = [
             'format' => 1, 'version' => $version, 'url' => self::PREFIX . 'v' . $version . '/x.zip',
-            'sha256' => hash_file('sha256', $zip), 'bytes' => (int) filesize($zip), 'notes' => ['en' => 'n'],
+            'sha256' => $sha256 ?? hash_file('sha256', $zip), 'bytes' => (int) filesize($zip), 'notes' => ['en' => 'n'],
         ];
         if ($minFrom !== null) {
             $data['min_from'] = $minFrom;
@@ -236,9 +241,10 @@ class UpgradeEngineTest extends TestCase
         $calls = 0;
         $commands = $this->fakeCommands();
         $service = $this->service($this->fakeHttp($evil, $manifest, $calls), $commands);
-        $this->assertSame('rolled_back', $service->execute($service->check(true)['manifest']));
+        $this->assertSame('failed', $service->execute($service->check(true)['manifest']));
         $this->assertSame('1.0.0', $this->installedVersion());
         $this->assertNotContains('maintenance:enable', $commands->log, 'nothing is touched before the download is OK');
+        $this->assertSame([], $commands->log, 'nothing changed, so nothing is rebuilt either');
     }
 
     public function testCheckUsesTheCacheAndTheTenMinutePause(): void
@@ -321,7 +327,7 @@ class UpgradeEngineTest extends TestCase
     {
         $log = [];
         $make = function (string $name, bool $failRun, bool $failUndo) use (&$log): UpgradeStep {
-            return new class ($name, $failRun, $failUndo, $log) implements UpgradeStep {
+            return new class ($name, $failRun, $failUndo, $log) implements UpgradeStep, ChangesShop {
                 private $name;
                 private $failRun;
                 private $failUndo;
@@ -384,6 +390,236 @@ class UpgradeEngineTest extends TestCase
         );
         $this->assertSame('needs_manual', $result);
         $this->assertSame(0, $finished, 'the shop stays in maintenance mode when the restore failed');
+    }
+
+    private function facts(array $override = []): array
+    {
+        return $override + [
+            'in_app_code' => true, 'module_writable' => true, 'parent_writable' => true,
+            'can_run_commands' => true, 'php_found' => true, 'free_bytes' => Preflight::MIN_FREE_BYTES,
+        ];
+    }
+
+    /**
+     * The handoff that unit tests used to miss: the settings page queues, the background command runs. Both use
+     * the same status file, and the second must not be refused because of what the first wrote.
+     */
+    public function testQueueThenWorkerHandoffRunsTheUpgrade(): void
+    {
+        $zip = $this->zipFor('1.0.1');
+        $calls = 0;
+        $commands = $this->fakeCommands();
+        $service = $this->service($this->fakeHttp($zip, $this->signedManifest($zip, '1.0.1'), $calls), $commands);
+        $manifest = $service->check(true)['manifest'];
+
+        $this->assertSame([], $service->queue($manifest, $this->facts()), 'click: pre-flight passes');
+        $this->assertSame('queued', $service->statusSummary()['state']);
+        $this->assertSame(
+            ['ALREADY_RUNNING'],
+            $service->queue($manifest, $this->facts()),
+            'a second click while queued is refused'
+        );
+        $this->assertSame([], $service->preflight($manifest, $this->facts(), true), 'the worker is not refused');
+
+        // the worker: a fresh service object (new process) on the same files
+        $worker = $this->service($this->fakeHttp($zip, $this->signedManifest($zip, '1.0.1'), $calls), $commands);
+        $outcome = $worker->work($worker->peek()['manifest'], $this->facts());
+        $this->assertSame([], $outcome['reasons']);
+        $this->assertSame('done', $outcome['state']);
+        $this->assertSame('1.0.1', $this->installedVersion());
+    }
+
+    public function testWorkerThatCannotStartTellsTheCardInsteadOfHanging(): void
+    {
+        $zip = $this->zipFor('1.0.1');
+        $calls = 0;
+        $service = $this->service(
+            $this->fakeHttp($zip, $this->signedManifest($zip, '1.0.1'), $calls),
+            $this->fakeCommands()
+        );
+        $manifest = $service->check(true)['manifest'];
+        $service->queue($manifest, $this->facts());
+        $outcome = $service->work($manifest, $this->facts(['php_found' => false]));
+        $this->assertSame(['PHP_NOT_FOUND'], $outcome['reasons']);
+        $state = $service->statusSummary();
+        $this->assertSame('failed', $state['state']);
+        $this->assertSame('PHP_NOT_FOUND', $state['reason']);
+        $this->assertFalse($state['changed']);
+    }
+
+    public function testQueuedRequestNobodyPickedUpFailsAfterThirtySeconds(): void
+    {
+        $file = $this->dir . '/q.json';
+        $status = new UpgradeStatus($file);
+        $status->write(UpgradeStatus::QUEUED, 0, 6, 'Starting');
+        $now = time();
+        $this->assertSame('queued', $status->read($now + 10)['state']);
+        $this->assertTrue($status->isBusy($now + 10));
+        $late = $status->read($now + UpgradeStatus::START_TIMEOUT_SECONDS + 2);
+        $this->assertSame('failed', $late['state']);
+        $this->assertSame('START_TIMEOUT', $late['reason']);
+        $this->assertFalse($late['changed']);
+        $this->assertFalse($status->isBusy($now + 40), 'the person can click again');
+    }
+
+    public function testBadChecksumChangesNothingAndRebuildsNothing(): void
+    {
+        $zip = $this->zipFor('1.0.1');
+        $calls = 0;
+        $commands = $this->fakeCommands();
+        $manifest = $this->signedManifest($zip, '1.0.1', null, str_repeat('0', 64));
+        $service = $this->service($this->fakeHttp($zip, $manifest, $calls), $commands);
+        $this->assertSame('failed', $service->execute($service->check(true)['manifest']));
+        $state = $service->statusSummary();
+        $this->assertSame('BAD_CHECKSUM', $state['reason']);
+        $this->assertFalse($state['changed']);
+        $this->assertSame([], $commands->log, 'no maintenance mode, no setup:upgrade, no compile');
+        $this->assertSame('1.0.0', $this->installedVersion());
+        $this->assertFileDoesNotExist($this->dir . '/var/work/package.zip');
+    }
+
+    public function testFailureBeforeTheSwapNeverRebuilds(): void
+    {
+        $zip = $this->zipFor('1.0.1');
+        $calls = 0;
+        $commands = $this->fakeCommands('maintenance:enable');
+        $service = $this->service($this->fakeHttp($zip, $this->signedManifest($zip, '1.0.1'), $calls), $commands);
+        $this->assertSame('failed', $service->execute($service->check(true)['manifest']));
+        $this->assertNotContains('setup:upgrade --keep-generated', $commands->log);
+        $this->assertNotContains('setup:di:compile', $commands->log);
+        $this->assertSame('1.0.0', $this->installedVersion());
+    }
+
+    public function testRecoveryCleansLeftoversAndLeavesMaintenanceMode(): void
+    {
+        $zip = $this->zipFor('1.0.1');
+        $calls = 0;
+        $commands = $this->fakeCommands();
+        $service = $this->service($this->fakeHttp($zip, $this->signedManifest($zip, '1.0.1'), $calls), $commands);
+        $steps = $service->steps($service->check(true)['manifest']);
+        foreach (array_slice($steps, 0, 4) as $step) {
+            $step->run();
+        }
+        file_put_contents($this->dir . '/var/work/package.zip', 'x');
+        mkdir($this->dir . '/var/work/new/leftover', 0775, true);
+        $file = $this->dir . '/var/work/status.json';
+        (new UpgradeStatus($file))->write(UpgradeStatus::RUNNING, 4, 6);
+        $raw = json_decode((string) file_get_contents($file), true);
+        $raw['time'] = time() - UpgradeStatus::STALE_SECONDS - 5;
+        file_put_contents($file, json_encode($raw));
+
+        $this->assertTrue($service->recoverIfDead());
+        $this->assertSame('1.0.0', $this->installedVersion());
+        $this->assertSame('maintenance:disable', end($commands->log));
+        $this->assertFileDoesNotExist($this->dir . '/var/work/package.zip');
+        $this->assertDirectoryDoesNotExist($this->dir . '/var/work/new');
+        $this->assertDirectoryDoesNotExist($service->backupDir());
+        $state = $service->statusSummary();
+        $this->assertSame('rolled_back', $state['state']);
+        $this->assertSame('INTERRUPTED', $state['reason']);
+        $this->assertFalse($service->recoverIfDead(), 'nothing left to do the second time');
+    }
+
+    public function testRecoveryBeforeTheSwapReportsThatNothingWasChanged(): void
+    {
+        $zip = $this->zipFor('1.0.1');
+        $calls = 0;
+        $commands = $this->fakeCommands();
+        $service = $this->service($this->fakeHttp($zip, $this->signedManifest($zip, '1.0.1'), $calls), $commands);
+        $steps = $service->steps($service->check(true)['manifest']);
+        foreach (array_slice($steps, 0, 3) as $step) { // killed right after "maintenance mode on"
+            $step->run();
+        }
+        $file = $this->dir . '/var/work/status.json';
+        (new UpgradeStatus($file))->write(UpgradeStatus::RUNNING, 3, 6);
+        $raw = json_decode((string) file_get_contents($file), true);
+        $raw['time'] = time() - UpgradeStatus::STALE_SECONDS - 5;
+        file_put_contents($file, json_encode($raw));
+        $this->assertTrue($service->recoverIfDead());
+        $this->assertSame('failed', $service->statusSummary()['state']);
+        $this->assertNotContains('setup:upgrade --keep-generated', $commands->log, 'nothing to rebuild');
+        $this->assertSame('maintenance:disable', end($commands->log));
+    }
+
+    public function testDeadProcessIsDetectedWithoutWaitingAnHour(): void
+    {
+        if (!is_dir('/proc/self')) {
+            $this->markTestSkipped('needs /proc');
+        }
+        $file = $this->dir . '/p.json';
+        file_put_contents($file, json_encode([
+            'state' => 'running', 'step' => 4, 'total' => 6, 'time' => time() - 120, 'pid' => 2147483000,
+        ]));
+        $status = new UpgradeStatus($file);
+        $this->assertTrue($status->read()['stale'] ?? false, 'the process is gone and 2 minutes are over');
+        file_put_contents($file, json_encode([
+            'state' => 'running', 'step' => 4, 'total' => 6, 'time' => time() - 5, 'pid' => 2147483000,
+        ]));
+        $this->assertArrayNotHasKey('stale', $status->read(), 'too early to tell');
+        file_put_contents($file, json_encode([
+            'state' => 'running', 'step' => 4, 'total' => 6, 'time' => time() - 120, 'pid' => getmypid(),
+        ]));
+        $this->assertArrayNotHasKey('stale', $status->read(), 'the process is alive: a slow compile is not dead');
+    }
+
+    public function testForcedRecoveryRetriesAfterNeedsManual(): void
+    {
+        $zip = $this->zipFor('1.0.1');
+        $calls = 0;
+        $commands = $this->fakeCommands();
+        $service = $this->service($this->fakeHttp($zip, $this->signedManifest($zip, '1.0.1'), $calls), $commands);
+        $steps = $service->steps($service->check(true)['manifest']);
+        foreach (array_slice($steps, 0, 4) as $step) {
+            $step->run();
+        }
+        (new UpgradeStatus($this->dir . '/var/work/status.json'))->write(UpgradeStatus::NEEDS_MANUAL, 6, 6);
+        $this->assertFalse($service->recoverIfDead(), 'cron and the card leave needs_manual alone');
+        $this->assertTrue($service->recoverIfDead(true), 'the command line --recover tries again');
+        $this->assertSame('1.0.0', $this->installedVersion());
+    }
+
+    public function testPhpLocatorTakesTheWebServersVersion(): void
+    {
+        $locator = new \GetDropFlow\FreeShippingBar\Model\Upgrade\PhpLocator();
+        $exists = function (array $paths): callable {
+            return function (string $p) use ($paths): bool {
+                return in_array($p, $paths, true);
+            };
+        };
+        $never = function (string $p): string {
+            return '';
+        };
+        // the default "php" is 8.5, the website runs 8.3 and php8.3 exists: take it
+        $this->assertSame('/usr/bin/php8.3', $locator->locate(
+            ['/usr/bin'],
+            '8',
+            '3',
+            $exists(['/usr/bin/php', '/usr/bin/php8.3']),
+            function (string $p): string {
+                return '8.5';
+            }
+        ));
+        $this->assertSame('/usr/bin/php83', $locator->locate(['/usr/bin'], '8', '3', $exists(['/usr/bin/php83']), $never));
+        // only a plain php: it is used only when it really is 8.3
+        $this->assertSame('/usr/bin/php', $locator->locate(['/usr/bin'], '8', '3', $exists(['/usr/bin/php']), function (string $p): string {
+            return "8.3\n";
+        }));
+        $this->assertSame('', $locator->locate(['/usr/bin'], '8', '3', $exists(['/usr/bin/php']), function (string $p): string {
+            return '8.5';
+        }), 'no matching php: no guess');
+    }
+
+    public function testPreflightKnowsWhenNoMatchingPhpExists(): void
+    {
+        $zip = $this->zipFor('1.0.1');
+        $parser = new ReleaseManifestParser();
+        $manifest = $parser->parse($this->signedManifest($zip, '1.0.1'), $this->public);
+        $ok = [
+            'key_present' => true, 'in_app_code' => true, 'module_writable' => true, 'parent_writable' => true,
+            'has_zip' => true, 'can_run_commands' => true, 'free_bytes' => Preflight::MIN_FREE_BYTES,
+            'upgrade_running' => false, 'current_version' => '1.0.0',
+        ];
+        $this->assertSame(['PHP_NOT_FOUND'], (new Preflight($parser))->check(['php_found' => false] + $ok, $manifest));
     }
 
     public function testPreflightGivesPlainReasons(): void

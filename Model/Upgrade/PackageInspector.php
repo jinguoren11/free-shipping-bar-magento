@@ -25,8 +25,11 @@ class PackageInspector
      */
     public function inspect(string $zipPath, ReleaseManifest $manifest): void
     {
+        // phpcs:disable Magento2.Functions.DiscouragedFunction -- Download edition only: exact size check
         clearstatcache(true, $zipPath);
-        if (!is_file($zipPath) || filesize($zipPath) !== $manifest->bytes) {
+        $size = is_file($zipPath) ? filesize($zipPath) : -1;
+        // phpcs:enable Magento2.Functions.DiscouragedFunction
+        if ($size !== $manifest->bytes) {
             throw new UpgradeRejected('BAD_SIZE', 'The downloaded file has the wrong size.');
         }
         if (!hash_equals($manifest->sha256, (string) hash_file('sha256', $zipPath))) {

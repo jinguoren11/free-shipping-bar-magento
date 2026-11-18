@@ -10,6 +10,8 @@ use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\State;
 use Magento\Framework\Component\ComponentRegistrar;
 use Magento\Framework\Component\ComponentRegistrarInterface;
+use Magento\Framework\Shell;
+use GetDropFlow\FreeShippingBar\Model\Upgrade\Step\Files;
 use Magento\Store\Model\StoreManagerInterface;
 
 /**
@@ -29,6 +31,10 @@ class ServiceFactory
     private $stores;
     /** @var \Magento\Framework\App\Config\ScopeConfigInterface */
     private $config;
+    /** @var Shell */
+    private $shell;
+    /** @var string|null */
+    private $php;
 
     /**
      * @param DirectoryList $directories
@@ -36,19 +42,22 @@ class ServiceFactory
      * @param State $state
      * @param StoreManagerInterface $stores
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
+     * @param Shell $shell
      */
     public function __construct(
         DirectoryList $directories,
         ComponentRegistrarInterface $registrar,
         State $state,
         StoreManagerInterface $stores,
-        \Magento\Framework\App\Config\ScopeConfigInterface $config
+        \Magento\Framework\App\Config\ScopeConfigInterface $config,
+        Shell $shell
     ) {
         $this->directories = $directories;
         $this->registrar = $registrar;
         $this->state = $state;
         $this->stores = $stores;
         $this->config = $config;
+        $this->shell = $shell;
     }
 
     /**
@@ -66,14 +75,13 @@ class ServiceFactory
         $test = (string) getenv('GETDROPFLOW_FSB_TEST_RELEASES');
         $local = preg_match('#^http://127\.0\.0\.1:\d{2,5}/$#', $test) === 1;
         $http = new CurlHttpClient($local ? $test : '');
-        $composer = is_file($moduleDir . '/composer.json')
-            ? json_decode((string) file_get_contents($moduleDir . '/composer.json'), true) : [];
+        $composer = json_decode(Files::read($moduleDir . '/composer.json'), true);
 
         return new UpgradeService(
             $workDir,
             $moduleDir,
             new UpgradeStatus($workDir . '/status.json'),
-            new ProcessCommandRunner($this->phpBinary(), $root),
+            new ShellCommandRunner($this->shell, $this->phpBinary(), $root),
             $http,
             new PackageInspector(),
             $parser,
@@ -99,9 +107,8 @@ class ServiceFactory
         $moduleDir = (string) $this->registrar->getPath(ComponentRegistrar::MODULE, self::MODULE);
         $real = (string) realpath($moduleDir);
         $disabled = array_map('trim', explode(',', (string) ini_get('disable_functions')));
-        $canRun = function_exists('proc_open') && function_exists('exec')
-            && !in_array('proc_open', $disabled, true) && !in_array('exec', $disabled, true)
-            && is_file($root . '/bin/magento') && is_executable($this->phpBinary());
+        $canRun = function_exists('proc_open') && !in_array('proc_open', $disabled, true)
+            && is_file($root . '/bin/magento');
 
         return [
             'in_app_code' => $real !== '' && strpos($real, (string) realpath($root . '/app/code') . '/') === 0
@@ -109,31 +116,83 @@ class ServiceFactory
             'module_writable' => is_writable($moduleDir),
             'parent_writable' => is_writable(dirname($moduleDir)),
             'can_run_commands' => $canRun,
-            'free_bytes' => (int) @disk_free_space($this->directories->getPath(DirectoryList::VAR_DIR)),
+            'php_found' => $this->phpBinary() !== '',
+            'free_bytes' => Files::freeBytes($this->directories->getPath(DirectoryList::VAR_DIR)),
         ];
     }
 
     /**
-     * Command line that starts the upgrade in the background.
+     * Starts the background worker (bin/magento getdropflow:fsb:upgrade) and returns at once. The worker must use the
+     * same PHP version as this web server (see phpBinary()).
      *
-     * @return string
+     * @return void
+     * @throws UpgradeRejected when the process cannot be started
      */
-    public function backgroundCommand(): string
+    public function startInBackground(): void
     {
-        return escapeshellarg($this->phpBinary()) . ' -d memory_limit=-1 '
-            . escapeshellarg($this->directories->getRoot() . '/bin/magento')
-            . ' getdropflow:fsb:upgrade > /dev/null 2>&1 &';
+        $php = $this->phpBinary();
+        if ($php === '') {
+            throw new UpgradeRejected('PHP_NOT_FOUND', 'No PHP program matching this server was found.');
+        }
+        try {
+            $this->shell->execute(
+                '(%s -d memory_limit=-1 %s getdropflow:fsb:upgrade > /dev/null 2>&1 &)',
+                [$php, $this->directories->getRoot() . '/bin/magento']
+            );
+        } catch (\Throwable $e) {
+            throw new UpgradeRejected('COMMAND_FAILED', 'The background process could not be started.');
+        }
     }
 
     /**
-     * Path of the php program (the web server's own binary may be php-fpm, so use the one next to it).
+     * The php program for the background commands: it must have the PHP version of the web server, because the
+     * code (and vendor folder) of the shop is only guaranteed to work on that one. A server often has several
+     * (php8.3 next to a default php 8.5), and the web server's own binary is php-fpm, not php.
      *
+     * Order: the command line process itself (it already is the right one), then phpMAJOR.MINOR / phpMAJORMINOR
+     * next to PHP, in /usr/bin and /usr/local/bin, then a plain "php" whose version is checked.
+     *
+     * @return string path, or '' when none matches
+     */
+    public function phpBinary(): string
+    {
+        if ($this->php !== null) {
+            return $this->php;
+        }
+        if (PHP_SAPI === 'cli' && PHP_BINARY !== '') {
+            return $this->php = PHP_BINARY;
+        }
+        $dirs = array_values(array_unique(array_filter(
+            [PHP_BINDIR, dirname(PHP_BINARY), '/usr/bin', '/usr/local/bin']
+        )));
+
+        return $this->php = (new PhpLocator())->locate(
+            $dirs,
+            (string) PHP_MAJOR_VERSION,
+            (string) PHP_MINOR_VERSION,
+            'is_executable',
+            function (string $binary): string {
+                return $this->versionOf($binary);
+            }
+        );
+    }
+
+    /**
+     * Asks a php program for its major.minor version.
+     *
+     * @param string $binary
      * @return string
      */
-    private function phpBinary(): string
+    private function versionOf(string $binary): string
     {
-        $candidate = PHP_BINDIR . '/php';
-        return is_executable($candidate) ? $candidate : 'php';
+        try {
+            return trim((string) $this->shell->execute(
+                '%s -r %s',
+                [$binary, 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;']
+            ));
+        } catch (\Throwable $e) {
+            return '';
+        }
     }
 
     /**

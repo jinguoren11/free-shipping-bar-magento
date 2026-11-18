@@ -6,6 +6,7 @@ declare(strict_types=1);
 
 namespace GetDropFlow\FreeShippingBar\Model\Upgrade\Step;
 
+use GetDropFlow\FreeShippingBar\Model\Upgrade\ChangesShop;
 use GetDropFlow\FreeShippingBar\Model\Upgrade\CommandRunner;
 use GetDropFlow\FreeShippingBar\Model\Upgrade\UpgradeStep;
 
@@ -13,7 +14,7 @@ use GetDropFlow\FreeShippingBar\Model\Upgrade\UpgradeStep;
  * Runs a list of bin/magento commands (setup:upgrade, compile, static files, cache flush). Nothing to undo here:
  * after a rollback the runner calls the same list again on the old code (see UpgradeService).
  */
-class CommandsStep implements UpgradeStep
+class CommandsStep implements UpgradeStep, ChangesShop
 {
     /** @var CommandRunner */
     private $runner;

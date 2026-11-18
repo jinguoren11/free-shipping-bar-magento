@@ -4,6 +4,10 @@
  */
 declare(strict_types=1);
 
+// phpcs:disable Magento2.Functions.DiscouragedFunction -- Download edition only: streams the package to disk with a
+// size cap while it downloads (fopen/fwrite/fclose); Magento's file driver cannot be used inside a curl callback.
+// phpcs:disable Magento2.Exceptions.TryProcessSystemResources -- the handle is closed in finally on purpose
+
 namespace GetDropFlow\FreeShippingBar\Model\Upgrade;
 
 /**
