@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="getdropflow_fsb" translate="label" type="text" sortOrder="95" showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>Free Shipping Progress Bar</label>
+            <tab>sales</tab>
+            <resource>GetDropFlow_FreeShippingBar::config</resource>
+            <!-- CHANNEL:direct-begin -->
+            <group id="upgrade" translate="label" type="text" sortOrder="5" showInDefault="1">
+                <label>Updates</label>
+                <field id="upgrade_card" translate="label" type="label" sortOrder="10" showInDefault="1">
+                    <frontend_model>GetDropFlow\FreeShippingBar\Block\Adminhtml\System\Config\UpgradeCard</frontend_model>
+                </field>
+            </group>
+            <!-- CHANNEL:direct-end -->
+            <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General</label>
+                <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="show_minicart" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show in Mini Cart</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="show_cart" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show on Cart Page</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="show_product" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show on Product Page</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+            <group id="threshold" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Free Shipping Threshold</label>
+                <field id="source" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Threshold Source</label>
+                    <source_model>GetDropFlow\FreeShippingBar\Model\Config\Source\ThresholdSource</source_model>
+                    <comment>"Magento Free Shipping method" reads Stores > Configuration > Sales > Delivery Methods > Free Shipping > Minimum Order Amount, so you do not have to enter it twice.</comment>
+                </field>
+                <field id="custom_value" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Custom Threshold</label>
+                    <validate>validate-number validate-greater-than-zero</validate>
+                    <comment>Amount in the store's base currency. Customers see it converted to their display currency.</comment>
+                    <depends>
+                        <field id="source">custom</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="messages" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Messages</label>
+                <comment><![CDATA[Leave a field empty to use the built-in text, which is translated automatically. Placeholders: <code>&#123;&#123;amount&#125;&#125;</code> = amount still missing, <code>&#123;&#123;threshold&#125;&#125;</code> = free shipping threshold.]]></comment>
+                <field id="progress_message" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Message: Not Yet Free Shipping</label>
+                </field>
+                <field id="success_message" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Message: Free Shipping Reached</label>
+                </field>
+                <field id="empty_message" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Message: Empty Cart</label>
+                </field>
+            </group>
+            <group id="appearance" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Appearance</label>
+                <field id="bar_color" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Progress Bar Color</label>
+                    <comment>Hex color, for example #3b6ea5.</comment>
+                </field>
+                <field id="show_bar" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Progress Bar</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="show_percent" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Percentage</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+            <group id="theme" translate="label comment" type="text" sortOrder="45" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Theme Compatibility</label>
+                <comment><![CDATA[Only needed if the bar does not appear where you want it with your theme. Enter a CSS selector of an element on the page (for example <code>.page-title-wrapper</code> or <code>#maincontent</code>); the bar is then placed next to it. Leave empty to use the standard position. If an element cannot be found on the page, the bar is simply not shown there.]]></comment>
+                <field id="selector_cart" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cart Page: Custom Position (CSS selector)</label>
+                </field>
+                <field id="selector_product" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Product Page: Custom Position (CSS selector)</label>
+                </field>
+                <field id="selector_minicart" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Mini Cart: Custom Position (CSS selector)</label>
+                    <comment>For themes whose mini cart has no standard place for extra content.</comment>
+                </field>
+                <field id="placement" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Placement Relative to the Element</label>
+                    <source_model>GetDropFlow\FreeShippingBar\Model\Config\Source\Placement</source_model>
+                </field>
+            </group>
+            <group id="about" translate="label comment" type="text" sortOrder="90" showInDefault="1">
+                <label>About</label>
+                <comment><![CDATA[Free and open source (MIT). Made by GetDropFlow &mdash; <a href="https://getdropflow.com" target="_blank" rel="noopener noreferrer">getdropflow.com</a>]]></comment>
+                <field id="show_more_tools" translate="label comment" type="select" sortOrder="10" showInDefault="1">
+                    <label>Show "More tools" Panel</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>A small static list of the author's other tools. It makes no network requests and collects no data.</comment>
+                </field>
+                <field id="more_tools" translate="label" type="label" sortOrder="20" showInDefault="1">
+                    <frontend_model>GetDropFlow\FreeShippingBar\Block\Adminhtml\System\Config\MoreTools</frontend_model>
+                </field>
+                <!-- CHANNEL:direct-begin -->
+                <field id="star_link" translate="label" type="label" sortOrder="30" showInDefault="1">
+                    <frontend_model>GetDropFlow\FreeShippingBar\Block\Adminhtml\System\Config\StarLink</frontend_model>
+                </field>
+                <!-- CHANNEL:direct-end -->
+            </group>
+        </section>
+    </system>
+</config>

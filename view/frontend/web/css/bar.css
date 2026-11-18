@@ -1,0 +1,44 @@
+/*
+ * Free Shipping Progress Bar. Every class starts with gdf-fsb- so it cannot clash with a theme.
+ * The font family is inherited from the theme, but the size is set here: some themes set font-size: 0 on the
+ * container they move the mini cart into (for example Luma's .header.links), and an inherited 0 made the bar
+ * 2 px high. Change it with --gdf-fsb-font-size. The bar has its own light card colors, so the text stays readable
+ * on any page (a dark header would otherwise pass on white text to a white panel). A theme or shop owner can
+ * change them with the CSS variables --gdf-fsb-text, --gdf-fsb-bg and --gdf-fsb-done-bg.
+ */
+.gdf-fsb-mount {
+    display: block;
+    max-width: 100%;
+    box-sizing: border-box;
+    font-size: var(--gdf-fsb-font-size, 14px);
+    line-height: 1.4;
+}
+.gdf-fsb-bar {
+    box-sizing: border-box;
+    max-width: 100%;
+    margin: .6em 0;
+    padding: .6em .8em;
+    border: 1px solid rgba(128, 128, 128, .4);
+    border-radius: .3em;
+    background: var(--gdf-fsb-bg, #fff);
+    color: var(--gdf-fsb-text, #222);
+    font-family: inherit;
+    font-size: var(--gdf-fsb-font-size, 14px);
+    font-weight: normal;
+    line-height: 1.4;
+    letter-spacing: normal;
+    text-align: center;
+}
+@supports (border-color: color-mix(in srgb, #f00 50%, #00f)) {
+    .gdf-fsb-bar { border-color: color-mix(in srgb, currentColor 30%, rgba(0, 0, 0, 0)); }
+}
+.gdf-fsb-message { display: block; font-size: 1em; overflow-wrap: anywhere; word-break: break-word; }
+.gdf-fsb-track { height: .55em; margin-top: .55em; border-radius: .3em; background: rgba(128, 128, 128, .25); overflow: hidden; }
+.gdf-fsb-fill { height: 100%; border-radius: .3em; transition: width .4s ease; }
+.gdf-fsb-bar--done { background: var(--gdf-fsb-done-bg, #f3faf3); }
+.gdf-fsb-percent { display: block; margin-top: .3em; font-size: .85em; opacity: .75; }
+[dir="rtl"] .gdf-fsb-fill { float: right; }
+@media (max-width: 480px) {
+    .gdf-fsb-bar { padding: .5em .6em; font-size: calc(var(--gdf-fsb-font-size, 14px) * .95); }
+}
+@media (prefers-reduced-motion: reduce) { .gdf-fsb-fill { transition: none; } }

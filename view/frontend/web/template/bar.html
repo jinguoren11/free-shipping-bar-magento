@@ -1,0 +1,14 @@
+<!-- ko if: isVisible() -->
+<div class="gdf-fsb-bar" role="status" aria-live="polite" data-bind="css: {'gdf-fsb-bar--done': bar().state === 'done'}">
+    <span class="gdf-fsb-message" data-bind="text: bar().message"></span>
+    <!-- ko if: bar().show_bar && bar().state !== 'empty' -->
+    <div class="gdf-fsb-track" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+         data-bind="attr: {'aria-valuenow': bar().percent}">
+        <div class="gdf-fsb-fill" data-bind="style: {width: bar().percent + '%', backgroundColor: bar().bar_color}"></div>
+    </div>
+    <!-- /ko -->
+    <!-- ko if: bar().show_percent && bar().state !== 'empty' -->
+    <span class="gdf-fsb-percent" data-bind="text: bar().percent + '%'"></span>
+    <!-- /ko -->
+</div>
+<!-- /ko -->

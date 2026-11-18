@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<!-- Download edition only: this file is removed from the Marketplace package. -->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
+    <group id="default">
+        <job name="getdropflow_fsb_recover_upgrade" instance="GetDropFlow\FreeShippingBar\Cron\RecoverUpgrade" method="execute">
+            <schedule>* * * * *</schedule>
+        </job>
+    </group>
+</config>

@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!-- Hyva only. The Luma mini cart region does not exist in Hyva: the bar goes into the Hyva cart drawer (cart-drawer.items.before). The footer mount is a spare used only when a custom mini cart position is set. -->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="gdf.fsb.minicart" remove="true"/>
+        <referenceContainer name="cart-drawer.items.before">
+            <block class="Magento\Framework\View\Element\Template" name="gdf.fsb.hyva.drawer" template="GetDropFlow_FreeShippingBarHyva::bar.phtml">
+                <arguments>
+                    <argument name="position" xsi:type="string">minicart</argument>
+                    <argument name="kind" xsi:type="string">drawer</argument>
+                    <argument name="initial_state" xsi:type="object">GetDropFlow\FreeShippingBarHyva\ViewModel\InitialState</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+        <referenceContainer name="before.body.end">
+            <block class="Magento\Framework\View\Element\Template" name="gdf.fsb.hyva.minicart" template="GetDropFlow_FreeShippingBarHyva::bar.phtml">
+                <arguments>
+                    <argument name="position" xsi:type="string">minicart</argument>
+                    <argument name="kind" xsi:type="string">footer</argument>
+                    <argument name="initial_state" xsi:type="object">GetDropFlow\FreeShippingBarHyva\ViewModel\InitialState</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <getdropflow_fsb>
+            <general>
+                <enabled>1</enabled>
+                <show_minicart>1</show_minicart>
+                <show_cart>1</show_cart>
+                <show_product>1</show_product>
+            </general>
+            <threshold>
+                <source>magento</source>
+            </threshold>
+            <appearance>
+                <bar_color>#3b6ea5</bar_color>
+                <show_bar>1</show_bar>
+                <show_percent>0</show_percent>
+            </appearance>
+            <theme>
+                <placement>after</placement>
+            </theme>
+            <about>
+                <show_more_tools>1</show_more_tools>
+            </about>
+        </getdropflow_fsb>
+    </default>
+</config>

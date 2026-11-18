@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="GetDropFlow_FreeShippingBar::css/bar.css"/>
+    </head>
+    <body>
+        <referenceBlock name="minicart">
+            <arguments>
+                <argument name="jsLayout" xsi:type="array">
+                    <item name="components" xsi:type="array">
+                        <item name="minicart_content" xsi:type="array">
+                            <item name="children" xsi:type="array">
+                                <item name="extra_info" xsi:type="array">
+                                    <item name="children" xsi:type="array">
+                                        <item name="free_shipping_bar" xsi:type="array">
+                                            <item name="component" xsi:type="string">GetDropFlow_FreeShippingBar/js/view/bar</item>
+                                            <item name="config" xsi:type="array">
+                                                <item name="position" xsi:type="string">minicart</item>
+                                                <item name="kind" xsi:type="string">region</item>
+                                            </item>
+                                            <item name="sortOrder" xsi:type="string">10</item>
+                                        </item>
+                                    </item>
+                                </item>
+                            </item>
+                        </item>
+                    </item>
+                </argument>
+            </arguments>
+        </referenceBlock>
+        <!-- Only used when a custom mount position is set for the mini cart (the bar is then moved there). -->
+        <referenceContainer name="before.body.end">
+            <block class="GetDropFlow\FreeShippingBar\Block\Bar" name="gdf.fsb.minicart" template="GetDropFlow_FreeShippingBar::bar.phtml">
+                <arguments>
+                    <argument name="position" xsi:type="string">minicart</argument>
+                    <argument name="kind" xsi:type="string">footer</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>
