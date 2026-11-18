@@ -137,7 +137,9 @@ define(['jquery'], function ($) {
         post = function (url, done) {
             $.ajax({
                 url: url, type: 'POST', dataType: 'json', data: {form_key: config.formKey},
-                global: false // no red Magento error bar when the shop answers 503 during maintenance mode
+                global: false, // no red Magento error bar when the shop answers 503 during maintenance mode
+                // Magento admin sets a default $.ajaxSettings.error that shows the red bar even with global:false
+                error: function () {}
             }).done(function (data) {
                 failures = 0;
                 done(data);

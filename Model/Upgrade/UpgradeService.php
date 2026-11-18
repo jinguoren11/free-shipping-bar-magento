@@ -53,6 +53,8 @@ class UpgradeService
     private $apiUrl;
     /** @var string[] */
     private $urlPrefixes;
+    /** @var int seconds to wait between two tries to rebuild the restored shop (killed child commands may still run) */
+    private $rebuildRetryDelay = 15;
 
     /**
      * @param string $workDir var/getdropflow_fsb_upgrade
@@ -314,12 +316,11 @@ class UpgradeService
         try {
             $restored = $swap->recover();
             if ($restored) {
-                foreach ($this->rebuildCommands() as $arguments) {
-                    $this->commands->magento($arguments);
-                }
+                $this->rebuildWithRetry();
             }
             MaintenanceStep::leave($this->commands, $this->maintenanceMarker());
         } catch (\Throwable $e) {
+            $this->status->log('RESTORE_FAILED ' . get_class($e) . ' ' . substr(trim($e->getMessage()), 0, 500));
             $this->status->write(
                 UpgradeStatus::NEEDS_MANUAL,
                 0,
@@ -341,6 +342,44 @@ class UpgradeService
             ['changed' => $restored] + $extra
         );
         return true;
+    }
+
+    /**
+     * Rebuilds the restored shop. A killed upgrade can leave a child command (setup:upgrade, di:compile) still
+     * running for a while, which makes the first try fail: wait and try again, twice at most.
+     *
+     * @return void
+     */
+    private function rebuildWithRetry(): void
+    {
+        $tries = 3;
+        for ($try = 1; $try <= $tries; $try++) {
+            try {
+                foreach ($this->rebuildCommands() as $arguments) {
+                    $this->commands->magento($arguments);
+                }
+                return;
+            } catch (\Throwable $e) {
+                $this->status->log('Rebuild try ' . $try . ' failed: ' . substr(trim($e->getMessage()), 0, 500));
+                if ($try === $tries) {
+                    throw $e;
+                }
+                if ($this->rebuildRetryDelay > 0) {
+                    sleep($this->rebuildRetryDelay);
+                }
+            }
+        }
+    }
+
+    /**
+     * Sets the wait between rebuild tries (tests use 0).
+     *
+     * @param int $seconds
+     * @return void
+     */
+    public function setRebuildRetryDelay(int $seconds): void
+    {
+        $this->rebuildRetryDelay = $seconds;
     }
 
     /**

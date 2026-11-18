@@ -147,7 +147,7 @@ class UpgradeEngineTest extends TestCase
     private function service(HttpClient $http, CommandRunner $commands, string $version = '1.0.0'): UpgradeService
     {
         $parser = new ReleaseManifestParser();
-        return new UpgradeService(
+        $service = new UpgradeService(
             $this->dir . '/var/work',
             $this->dir . '/app/code/GetDropFlow/FreeShippingBar',
             new UpgradeStatus($this->dir . '/var/work/status.json'),
@@ -162,6 +162,8 @@ class UpgradeEngineTest extends TestCase
             true,
             ['en_US', 'es_ES']
         );
+        $service->setRebuildRetryDelay(0);
+        return $service;
     }
 
     private function installedVersion(): string
@@ -560,6 +562,34 @@ class UpgradeEngineTest extends TestCase
             'state' => 'running', 'step' => 4, 'total' => 6, 'time' => time() - 120, 'pid' => getmypid(),
         ]));
         $this->assertArrayNotHasKey('stale', $status->read(), 'the process is alive: a slow compile is not dead');
+    }
+
+    public function testRecoveryRetriesTheRebuildWhenAKilledChildStillRuns(): void
+    {
+        $zip = $this->zipFor('1.0.1');
+        $calls = 0;
+        $commands = $this->fakeCommands('setup:upgrade');
+        $service = $this->service($this->fakeHttp($zip, $this->signedManifest($zip, '1.0.1'), $calls), $commands);
+        $steps = $service->steps($service->check(true)['manifest']);
+        foreach (array_slice($steps, 0, 4) as $step) {
+            $step->run();
+        }
+        (new UpgradeStatus($this->dir . '/var/work/status.json'))->write(
+            UpgradeStatus::RUNNING,
+            5,
+            6,
+            '',
+            '',
+            []
+        );
+        $raw = json_decode((string) file_get_contents($this->dir . '/var/work/status.json'), true);
+        $raw['pid'] = 99999999;
+        $raw['time'] = time() - 120;
+        file_put_contents($this->dir . '/var/work/status.json', json_encode($raw));
+        $this->assertTrue($service->recoverIfDead());
+        $state = (new UpgradeStatus($this->dir . '/var/work/status.json'))->read();
+        $this->assertSame('rolled_back', $state['state'], 'the second try of the rebuild worked');
+        $this->assertStringContainsString('Rebuild try 1 failed', (string) file_get_contents($this->dir . '/var/work/upgrade.log'));
     }
 
     public function testForcedRecoveryRetriesAfterNeedsManual(): void
