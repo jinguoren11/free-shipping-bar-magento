@@ -72,6 +72,8 @@ class UpgradeRunner
     ): string {
         $reason = $cause instanceof UpgradeRejected ? $cause->reason : 'STEP_FAILED';
         $extra['reason'] = $reason;
+        $extra['detail'] = substr(trim($cause->getMessage()), 0, 500);
+        $this->status->log(get_class($cause) . ' [' . $reason . '] ' . $extra['detail']);
         // The shop is only rebuilt when a step that changes its code or generated files was started. A failure
         // before that (download, checksum, unpack, maintenance switch) changes nothing, so nothing is rebuilt.
         $changed = false;

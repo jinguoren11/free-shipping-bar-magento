@@ -10,7 +10,7 @@ If you installed the module from the GitHub download (folder `app/code/GetDropFl
    - While the shop is in maintenance mode (a few minutes) the admin cannot answer, so the card shows "the shop is in maintenance mode ... it will continue by itself" and waits; this is normal.
    - If the card says the upgrade stopped "before anything on your shop was changed" (for example a damaged download, a wrong checksum, no disk space), your shop was never touched and nothing was rebuilt. The card names the reason.
    - If the process does not start within 30 seconds, the card says so and nothing is changed. Typical cause: the server does not allow background commands, or has no PHP program with the same version as the website.
-5. **If an upgrade was killed half way** (power cut, server restart, process killed) the shop can stay in maintenance mode and the admin is then unreachable. The module puts the old version back by itself: every 5 minutes Magento's cron looks for a dead upgrade (its process is gone), restores the old files, leaves maintenance mode and removes the leftovers (`var/getdropflow_fsb_upgrade/new`, `package.zip`). You can do the same at once on the server:
+5. **If an upgrade was killed half way** (power cut, server restart, process killed) the shop can stay in maintenance mode and the admin is then unreachable. The module puts the old version back by itself: every minute Magento's cron looks for a dead upgrade (its process is gone), restores the old files, leaves maintenance mode and removes the leftovers (`var/getdropflow_fsb_upgrade/new`, `package.zip`). You can do the same at once on the server:
    ```
    php bin/magento getdropflow:fsb:upgrade --recover
    ```

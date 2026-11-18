@@ -30,7 +30,7 @@ class UpgradeStatus
     /** The background process must report within this time after the click, otherwise the start has failed. */
     public const START_TIMEOUT_SECONDS = 30;
     /** A running upgrade whose process is gone is treated as dead after this much silence. */
-    public const DEAD_PROCESS_SECONDS = 60;
+    public const DEAD_PROCESS_SECONDS = 30;
 
     /** @var string */
     private $file;
@@ -142,5 +142,21 @@ class UpgradeStatus
     {
         $pid = (int) ($data['pid'] ?? 0);
         return $pid > 0 && is_dir('/proc/self') && !is_dir('/proc/' . $pid);
+    }
+
+    /**
+     * Appends one line to upgrade.log next to the status file, so the real cause of a failed step is never lost.
+     *
+     * @param string $line
+     * @return void
+     */
+    public function log(string $line): void
+    {
+        try {
+            $log = dirname($this->file) . '/upgrade.log';
+            Files::write($log, Files::read($log) . gmdate('Y-m-d H:i:s') . ' UTC ' . $line . "\n");
+        } catch (\Throwable $e) {
+            return;
+        }
     }
 }
