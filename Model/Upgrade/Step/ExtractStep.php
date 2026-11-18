@@ -44,7 +44,7 @@ class ExtractStep implements UpgradeStep
     public function run(): void
     {
         Files::removeTree($this->targetDir);
-        mkdir($this->targetDir, 0775, true);
+        Files::ensureDir($this->targetDir);
         $zip = new \ZipArchive();
         if ($zip->open($this->zipPath) !== true || !$zip->extractTo($this->targetDir)) {
             throw new UpgradeRejected('EXTRACT_FAILED', 'The new version could not be unpacked.');

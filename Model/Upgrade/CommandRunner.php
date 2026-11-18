@@ -9,6 +9,7 @@ namespace GetDropFlow\FreeShippingBar\Model\Upgrade;
 /**
  * Runs bin/magento commands for the upgrade.
  */
+// phpcs:ignore Magento2.NamingConvention.InterfaceName -- short name kept, the engine is Download-edition only
 interface CommandRunner
 {
     /**

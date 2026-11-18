@@ -47,8 +47,7 @@ class VerifyStep implements UpgradeStep
      */
     public function run(): void
     {
-        $composer = is_file($this->moduleDir . '/composer.json')
-            ? json_decode((string) file_get_contents($this->moduleDir . '/composer.json'), true) : null;
+        $composer = json_decode(Files::read($this->moduleDir . '/composer.json'), true);
         if (!is_array($composer) || ($composer['version'] ?? null) !== $this->version) {
             throw new UpgradeRejected('VERIFY_FAILED', 'The installed version is not the expected one.');
         }

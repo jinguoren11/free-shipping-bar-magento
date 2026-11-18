@@ -9,6 +9,7 @@ namespace GetDropFlow\FreeShippingBar\Model\Upgrade;
 use GetDropFlow\FreeShippingBar\Model\Upgrade\Step\CommandsStep;
 use GetDropFlow\FreeShippingBar\Model\Upgrade\Step\DownloadStep;
 use GetDropFlow\FreeShippingBar\Model\Upgrade\Step\ExtractStep;
+use GetDropFlow\FreeShippingBar\Model\Upgrade\Step\Files;
 use GetDropFlow\FreeShippingBar\Model\Upgrade\Step\MaintenanceStep;
 use GetDropFlow\FreeShippingBar\Model\Upgrade\Step\SwapStep;
 use GetDropFlow\FreeShippingBar\Model\Upgrade\Step\VerifyStep;
@@ -116,7 +117,7 @@ class UpgradeService
     {
         $now = $now ?? time();
         $cacheFile = $this->workDir . '/latest.json';
-        $cached = is_file($cacheFile) ? json_decode((string) file_get_contents($cacheFile), true) : null;
+        $cached = json_decode(Files::read($cacheFile), true);
         $age = is_array($cached) ? $now - (int) ($cached['checked_at'] ?? 0) : PHP_INT_MAX;
         $fresh = $age < ($force ? self::MIN_RECHECK_SECONDS : self::CACHE_SECONDS);
         try {
@@ -144,7 +145,7 @@ class UpgradeService
     public function peek(): array
     {
         $cacheFile = $this->workDir . '/latest.json';
-        $cached = is_file($cacheFile) ? json_decode((string) file_get_contents($cacheFile), true) : null;
+        $cached = json_decode(Files::read($cacheFile), true);
         if (is_array($cached) && isset($cached['manifest_json'])) {
             try {
                 return $this->result(
@@ -164,16 +165,18 @@ class UpgradeService
      *
      * @param ReleaseManifest $manifest
      * @param array $serverFacts facts only the caller can see: in_app_code, module_writable, parent_writable,
-     *     can_run_commands, free_bytes
+     *     can_run_commands, php_found, free_bytes
+     * @param bool $asWorker true in the background process: a request that is only "queued" (the very request this
+     *     process was started for) is not "already running"
      * @return string[]
      */
-    public function preflight(ReleaseManifest $manifest, array $serverFacts): array
+    public function preflight(ReleaseManifest $manifest, array $serverFacts, bool $asWorker = false): array
     {
         $facts = array_merge($serverFacts, [
             'current_version' => $this->currentVersion,
             'key_present' => $this->publicKey !== '',
             'has_zip' => class_exists(\ZipArchive::class),
-            'upgrade_running' => $this->status->isRunning(),
+            'upgrade_running' => $asWorker ? $this->status->isRunning() : $this->status->isBusy(),
         ]);
         return $this->preflight->check($facts, $manifest);
     }
@@ -220,30 +223,97 @@ class UpgradeService
             ['from' => $this->currentVersion, 'to' => $manifest->version]
         );
         if ($result === UpgradeStatus::DONE) {
-            Step\Files::removeTree($this->backupDir());
-            Step\Files::removeTree($this->workDir . '/new');
-            if (is_file($this->workDir . '/package.zip')) {
-                unlink($this->workDir . '/package.zip');
-            }
+            Files::removeTree($this->backupDir());
+            $this->cleanLeftovers();
         }
         return $result;
     }
 
     /**
-     * After a killed upgrade (no sign of life for a quarter of an hour): put the old version back.
-     * Returns true when something had to be restored.
+     * Step 1 of an upgrade, done by the settings page: repeat the pre-flight and write "queued". The background
+     * process is started by the caller only when the returned list is empty.
      *
-     * @return bool
+     * @param ReleaseManifest $manifest
+     * @param array $serverFacts see preflight()
+     * @return string[] reasons why it cannot start (empty = queued)
      */
-    public function recoverIfDead(): bool
+    public function queue(ReleaseManifest $manifest, array $serverFacts): array
+    {
+        $reasons = $this->preflight($manifest, $serverFacts);
+        if (!$reasons) {
+            $this->markQueued($manifest);
+        }
+        return $reasons;
+    }
+
+    /**
+     * Step 2, done by the background process (bin/magento getdropflow:fsb:upgrade): pre-flight again, then run.
+     * When the pre-flight says no, the card is told (state "failed") instead of waiting for a worker that never ran.
+     *
+     * @param ReleaseManifest $manifest
+     * @param array $serverFacts see preflight()
+     * @return array [reasons => string[], state => string]
+     */
+    public function work(ReleaseManifest $manifest, array $serverFacts): array
+    {
+        $reasons = $this->preflight($manifest, $serverFacts, true);
+        if ($reasons) {
+            $this->status->write(
+                UpgradeStatus::FAILED,
+                0,
+                0,
+                '',
+                'The upgrade could not start: ' . implode(', ', $reasons),
+                ['reason' => $reasons[0], 'changed' => false, 'from' => $this->currentVersion,
+                    'to' => $manifest->version]
+            );
+            return ['reasons' => $reasons, 'state' => UpgradeStatus::FAILED];
+        }
+        return ['reasons' => [], 'state' => $this->execute($manifest)];
+    }
+
+    /**
+     * The background process could not be started at all: tell the card at once.
+     *
+     * @param string $reason reason code
+     * @return void
+     */
+    public function markStartFailed(string $reason): void
+    {
+        $this->status->write(
+            UpgradeStatus::FAILED,
+            0,
+            0,
+            '',
+            'The background process could not be started. Nothing was changed.',
+            ['reason' => $reason, 'changed' => false]
+        );
+    }
+
+    /**
+     * After a killed upgrade (the process is gone, or no sign of life for an hour): put the old version back, leave
+     * maintenance mode that this upgrade switched on, and remove the leftovers. Called by the settings page, by cron
+     * and by "bin/magento getdropflow:fsb:upgrade --recover" (the way in when maintenance mode blocks the admin).
+     *
+     * @param bool $force also try again after "needs_manual" (the command line does this)
+     * @return bool true when something was done
+     */
+    public function recoverIfDead(bool $force = false): bool
     {
         $data = $this->status->read();
-        if ($data['state'] !== UpgradeStatus::RUNNING || empty($data['stale'])) {
+        $dead = $data['state'] === UpgradeStatus::RUNNING && !empty($data['stale']);
+        $retry = $force && $data['state'] === UpgradeStatus::NEEDS_MANUAL;
+        if (!$dead && !$retry) {
             return false;
         }
+        // shown while restoring, so that a second recovery (cron) does not start on top of this one
+        $this->status->write(UpgradeStatus::RUNNING, 0, 0, 'Restoring the previous version');
         $swap = new SwapStep($this->moduleDir, $this->workDir . '/new', $this->backupDir());
+        $extra = ['from' => $data['from'] ?? $this->currentVersion, 'to' => $data['to'] ?? '',
+            'reason' => 'INTERRUPTED'];
         try {
-            if ($swap->recover()) {
+            $restored = $swap->recover();
+            if ($restored) {
                 foreach ($this->rebuildCommands() as $arguments) {
                     $this->commands->magento($arguments);
                 }
@@ -256,19 +326,32 @@ class UpgradeService
                 0,
                 '',
                 'Restore did not finish.',
-                ['reason' => 'RESTORE_FAILED']
+                ['reason' => 'RESTORE_FAILED', 'changed' => true] + $extra
             );
             return true;
         }
+        $this->cleanLeftovers();
         $this->status->write(
-            UpgradeStatus::ROLLED_BACK,
+            $restored ? UpgradeStatus::ROLLED_BACK : UpgradeStatus::FAILED,
             0,
             0,
             '',
-            'The upgrade was interrupted; your previous version was put back.',
-            ['reason' => 'INTERRUPTED']
+            $restored ? 'The upgrade was interrupted; your previous version was put back.'
+                : 'The upgrade was interrupted before anything was changed.',
+            ['changed' => $restored] + $extra
         );
         return true;
+    }
+
+    /**
+     * Removes what an upgrade leaves in the work folder: the unpacked new version and the downloaded zip.
+     *
+     * @return void
+     */
+    private function cleanLeftovers(): void
+    {
+        Files::removeTree($this->workDir . '/new');
+        Files::remove($this->workDir . '/package.zip');
     }
 
     /**
@@ -298,7 +381,8 @@ class UpgradeService
     }
 
     /**
-     * Writes "running, step 0" at once so that the card shows progress before the worker has started.
+     * Writes "queued" at once so that the card shows progress before the worker has started. It is not "running":
+     * the worker's own pre-flight would refuse a running upgrade.
      *
      * @param ReleaseManifest $manifest
      * @return void
@@ -306,7 +390,7 @@ class UpgradeService
     public function markQueued(ReleaseManifest $manifest): void
     {
         $this->status->write(
-            UpgradeStatus::RUNNING,
+            UpgradeStatus::QUEUED,
             0,
             count($this->steps($manifest)),
             'Starting',
@@ -373,12 +457,9 @@ class UpgradeService
      */
     private function saveCache(string $file, int $now, ReleaseManifest $manifest): void
     {
-        if (!is_dir(dirname($file))) {
-            mkdir(dirname($file), 0775, true);
-        }
-        file_put_contents($file, (string) json_encode([
+        Files::write($file, (string) json_encode([
             'checked_at' => $now,
             'manifest_json' => $manifest->rawJson,
-        ]), LOCK_EX);
+        ]));
     }
 }

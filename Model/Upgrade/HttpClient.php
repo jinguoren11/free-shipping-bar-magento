@@ -9,6 +9,7 @@ namespace GetDropFlow\FreeShippingBar\Model\Upgrade;
 /**
  * Minimal web access used by the upgrade. Only plain GET requests, no data of the shop is ever sent.
  */
+// phpcs:ignore Magento2.NamingConvention.InterfaceName -- short name kept, the engine is Download-edition only
 interface HttpClient
 {
     /**

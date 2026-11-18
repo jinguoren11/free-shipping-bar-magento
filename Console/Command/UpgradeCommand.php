@@ -36,7 +36,13 @@ class UpgradeCommand extends Command
     protected function configure(): void
     {
         $this->setDescription('Upgrades the Free Shipping Progress Bar module to the newest signed release.');
-        $this->addOption('recover', null, InputOption::VALUE_NONE, 'Put the old version back after a killed upgrade.');
+        $this->addOption(
+            'recover',
+            null,
+            InputOption::VALUE_NONE,
+            'Put the old version back and leave maintenance mode after a killed upgrade '
+            . '(use this when maintenance mode blocks the admin).'
+        );
     }
 
     /**
@@ -46,23 +52,23 @@ class UpgradeCommand extends Command
     {
         $service = $this->factory->create();
         if ($input->getOption('recover')) {
-            $output->writeln($service->recoverIfDead() ? 'Restored.' : 'Nothing to restore.');
+            $output->writeln($service->recoverIfDead(true) ? 'Restored.' : 'Nothing to restore.');
             return Command::SUCCESS;
         }
+        $service->recoverIfDead(); // a dead earlier upgrade is restored first, never built upon
         $found = $service->peek();
         $manifest = $found['manifest'];
         if ($manifest === null || !$found['newer']) {
             $output->writeln('No newer version known. Press "Check for updates" first.');
             return Command::FAILURE;
         }
-        $reasons = $service->preflight($manifest, $this->factory->serverFacts());
-        if ($reasons) {
-            $output->writeln('Cannot upgrade: ' . implode(', ', $reasons));
+        $outcome = $service->work($manifest, $this->factory->serverFacts());
+        if ($outcome['reasons']) {
+            $output->writeln('Cannot upgrade: ' . implode(', ', $outcome['reasons']));
             return Command::FAILURE;
         }
-        $result = $service->execute($manifest);
-        $output->writeln($result);
+        $output->writeln($outcome['state']);
 
-        return $result === UpgradeStatus::DONE ? Command::SUCCESS : Command::FAILURE;
+        return $outcome['state'] === UpgradeStatus::DONE ? Command::SUCCESS : Command::FAILURE;
     }
 }

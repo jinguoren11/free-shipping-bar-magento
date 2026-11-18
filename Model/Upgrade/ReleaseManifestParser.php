@@ -170,8 +170,10 @@ class ReleaseManifestParser
      */
     private function verifySignature(array $data, string $publicKeyBase64): void
     {
+        // phpcs:disable Magento2.Functions.DiscouragedFunction -- Download edition only: signatures are base64
         $signature = base64_decode((string) ($data['signature'] ?? ''), true);
         $key = base64_decode($publicKeyBase64, true);
+        // phpcs:enable Magento2.Functions.DiscouragedFunction
         if ($signature === false || $key === false || strlen($signature) !== SODIUM_CRYPTO_SIGN_BYTES
             || strlen($key) !== SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES
             || !sodium_crypto_sign_verify_detached($signature, $this->canonical($data), $key)) {

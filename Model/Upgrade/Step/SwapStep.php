@@ -6,6 +6,7 @@ declare(strict_types=1);
 
 namespace GetDropFlow\FreeShippingBar\Model\Upgrade\Step;
 
+use GetDropFlow\FreeShippingBar\Model\Upgrade\ChangesShop;
 use GetDropFlow\FreeShippingBar\Model\Upgrade\PackageInspector;
 use GetDropFlow\FreeShippingBar\Model\Upgrade\UpgradeRejected;
 use GetDropFlow\FreeShippingBar\Model\Upgrade\UpgradeStep;
@@ -15,7 +16,7 @@ use GetDropFlow\FreeShippingBar\Model\Upgrade\UpgradeStep;
  * twice), then moves the new folder in. undo() puts the old folder back. Both folders must be on the same disk
  * so that the moves are instant renames.
  */
-class SwapStep implements UpgradeStep
+class SwapStep implements UpgradeStep, ChangesShop
 {
     /** @var string */
     private $moduleDir;
@@ -58,11 +59,11 @@ class SwapStep implements UpgradeStep
             throw new UpgradeRejected('SWAP_FAILED', 'The module folder was not found.');
         }
         Files::removeTree($this->backupDir);
-        if (!@rename($this->moduleDir, $this->backupDir)) {
+        if (!Files::move($this->moduleDir, $this->backupDir)) {
             throw new UpgradeRejected('SWAP_FAILED', 'The old version could not be moved away.');
         }
         $this->movedOld = true;
-        if (!@rename($new, $this->moduleDir)) {
+        if (!Files::move($new, $this->moduleDir)) {
             throw new UpgradeRejected('SWAP_FAILED', 'The new version could not be put in place.');
         }
         $this->movedNew = true;
@@ -79,7 +80,7 @@ class SwapStep implements UpgradeStep
         if ($this->movedNew || is_dir($this->moduleDir)) {
             Files::removeTree($this->moduleDir);
         }
-        if (!@rename($this->backupDir, $this->moduleDir)) {
+        if (!Files::move($this->backupDir, $this->moduleDir)) {
             throw new UpgradeRejected('RESTORE_FAILED', 'The old version could not be put back.');
         }
         $this->movedOld = false;
@@ -98,7 +99,7 @@ class SwapStep implements UpgradeStep
             return false;
         }
         Files::removeTree($this->moduleDir);
-        if (!@rename($this->backupDir, $this->moduleDir)) {
+        if (!Files::move($this->backupDir, $this->moduleDir)) {
             throw new UpgradeRejected('RESTORE_FAILED', 'The old version could not be put back.');
         }
         return true;

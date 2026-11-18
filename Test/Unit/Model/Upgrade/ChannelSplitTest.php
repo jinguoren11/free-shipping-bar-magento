@@ -37,7 +37,7 @@ class ChannelSplitTest extends TestCase
 
     public function testNoOtherFileReachesIntoTheUpgradeCode(): void
     {
-        $allowed = ['Model/Upgrade', 'Console', 'Controller', 'Block/Adminhtml/System/Config/UpgradeCard.php',
+        $allowed = ['Model/Upgrade', 'Console', 'Controller', 'Cron', 'Block/Adminhtml/System/Config/UpgradeCard.php',
             'Block/Adminhtml/System/Config/StarLink.php', 'Test', 'build'];
         $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(
             self::ROOT,

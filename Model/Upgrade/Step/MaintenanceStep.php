@@ -42,7 +42,7 @@ class MaintenanceStep implements UpgradeStep
     {
         if (is_file($marker)) {
             $runner->magento(['maintenance:disable']);
-            unlink($marker);
+            Files::remove($marker);
         }
     }
 
@@ -64,7 +64,7 @@ class MaintenanceStep implements UpgradeStep
             return; // already in maintenance mode: not ours to switch off later
         }
         $this->runner->magento(['maintenance:enable']);
-        file_put_contents($this->marker, '1');
+        Files::write($this->marker, '1');
     }
 
     /**

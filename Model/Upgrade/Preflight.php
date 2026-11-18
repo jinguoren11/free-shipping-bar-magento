@@ -29,7 +29,8 @@ class Preflight
      * Returns the reasons why the upgrade cannot run (empty list = it can).
      *
      * Facts: in_app_code (bool), module_writable (bool), parent_writable (bool), can_run_commands (bool),
-     * free_bytes (int), upgrade_running (bool), current_version (string), key_present (bool), has_zip (bool),
+     * php_found (bool, optional), free_bytes (int),
+     * upgrade_running (bool), current_version (string), key_present (bool), has_zip (bool),
      * production_mode (bool, informative only).
      *
      * @param array $facts
@@ -45,6 +46,7 @@ class Preflight
             'NOT_WRITABLE' => empty($facts['module_writable']) || empty($facts['parent_writable']),
             'NO_ZIP' => empty($facts['has_zip']),
             'CANNOT_RUN_COMMANDS' => empty($facts['can_run_commands']),
+            'PHP_NOT_FOUND' => array_key_exists('php_found', $facts) && empty($facts['php_found']),
             'LOW_DISK' => (int) ($facts['free_bytes'] ?? 0) < self::MIN_FREE_BYTES,
             'ALREADY_RUNNING' => !empty($facts['upgrade_running']),
             'NOT_NEWER' => !$this->parser->isNewer($manifest->version, (string) ($facts['current_version'] ?? '')),
