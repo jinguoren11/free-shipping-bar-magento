@@ -39,6 +39,17 @@ bin/magento cache:flush
 Stores > Configuration > Sales > **Free Shipping Progress Bar**.
 For the automatic threshold, enable Stores > Configuration > Sales > Delivery Methods > **Free Shipping** and set a Minimum Order Amount.
 
+## Supported themes
+| Your theme | What to install | Status |
+|---|---|---|
+| Magento **Luma**, **Blank**, and themes built on them (most themes) | This module only | Tested: mini cart, cart page, product page |
+| **Hyvä** (including the CSP build) | This module **and** the Hyvä compatibility package `getdropflow-module-free-shipping-bar-hyva-<version>-direct.zip` (same Releases page, unzip it into `app/code/GetDropFlow/`) | Tested: cart page, product page, cart drawer |
+| **Breeze** (Swissup) | This module only (built in) | Tested: mini cart, cart page, product page |
+| Other Luma-based themes | This module only | Usually work; if the bar does not appear, set a **custom position** (see `docs/THEMES.md`) |
+| Headless storefronts (PWA Studio, Next.js, Vue Storefront, React) | Not supported | The module renders inside the Magento storefront |
+
+Without the Hyvä compatibility package the bar does not appear on a Hyvä store (no error is shown). Details, the CSP note and the custom-position steps: [`docs/THEMES.md`](docs/THEMES.md).
+
 ## Compatibility
 Magento Open Source / Adobe Commerce 2.4.x, PHP 8.1+.
 
