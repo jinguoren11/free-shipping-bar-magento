@@ -15,6 +15,24 @@ If this module is useful to you, please give the repository a star ⭐ — it he
 - Multi-currency and multi-store-view aware; texts are translated (English, Spanish, Chinese included) and can be overridden per store view.
 - Read-only: never touches orders, payments, prices or shipping calculation. No tracking.
 
+## Screenshots
+
+| Cart page | Free shipping reached |
+|---|---|
+| ![Cart page with the progress bar](docs/images/fsb-01-cart-progress.png) | ![Free shipping reached](docs/images/fsb-02-cart-free-shipping-reached.png) |
+
+| Mini cart | Product page |
+|---|---|
+| ![Mini cart](docs/images/fsb-03-minicart.png) | ![Product page](docs/images/fsb-04-product-page.png) |
+
+| Mobile (cart) | Mobile (product page) |
+|---|---|
+| ![Mobile cart](docs/images/fsb-01-cart-progress-mobile.png) | ![Mobile product page](docs/images/fsb-04-product-page-mobile.png) |
+
+Settings (Stores > Configuration > Sales > Free Shipping Progress Bar):
+
+![Admin settings](docs/images/fsb-05-admin-settings.png)
+
 ## Download
 - **Main download: the [Releases page of this repository](https://github.com/jinguoren11/free-shipping-bar-magento/releases)** — every version has a zip attached (`getdropflow-module-free-shipping-bar-<version>-direct.zip`). This edition has one-click upgrade.
 - Adobe Commerce Marketplace edition: install with Composer (updates come from Adobe).
