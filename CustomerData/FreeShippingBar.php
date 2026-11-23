@@ -6,6 +6,7 @@ declare(strict_types=1);
 
 namespace GetDropFlow\FreeShippingBar\CustomerData;
 
+use GetDropFlow\FreeShippingBar\Model\Access;
 use GetDropFlow\FreeShippingBar\Model\Config;
 use GetDropFlow\FreeShippingBar\Model\AmountFormatter;
 use GetDropFlow\FreeShippingBar\Model\SectionDataBuilder;
@@ -57,6 +58,11 @@ class FreeShippingBar implements SectionSourceInterface
     private $localeResolver;
 
     /**
+     * @var Access
+     */
+    private $access;
+
+    /**
      * @param Config $config
      * @param SectionDataBuilder $builder
      * @param CheckoutSession $checkoutSession
@@ -64,6 +70,7 @@ class FreeShippingBar implements SectionSourceInterface
      * @param SectionSettings $settings
      * @param StoreManagerInterface $storeManager
      * @param ResolverInterface $localeResolver
+     * @param Access $access
      */
     public function __construct(
         Config $config,
@@ -72,7 +79,8 @@ class FreeShippingBar implements SectionSourceInterface
         AmountFormatter $formatter,
         SectionSettings $settings,
         StoreManagerInterface $storeManager,
-        ResolverInterface $localeResolver
+        ResolverInterface $localeResolver,
+        Access $access
     ) {
         $this->config = $config;
         $this->builder = $builder;
@@ -81,6 +89,7 @@ class FreeShippingBar implements SectionSourceInterface
         $this->settings = $settings;
         $this->storeManager = $storeManager;
         $this->localeResolver = $localeResolver;
+        $this->access = $access;
     }
 
     /**
@@ -96,7 +105,8 @@ class FreeShippingBar implements SectionSourceInterface
         return $this->builder->build(
             (string) $store->getCode(),
             strtolower((string) strstr($this->localeResolver->getLocale() . '_', '_', true)),
-            $this->config->flag('general/enabled', $storeId),
+            // not authorized: the bar is simply not shown (nothing else changes, the cart and checkout are never touched)
+            $this->access->isAllowed() && $this->config->flag('general/enabled', $storeId),
             $this->config->getThreshold($storeId),
             $isEmpty,
             !$isEmpty && $quote->isVirtual(),

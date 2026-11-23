@@ -5,5 +5,8 @@
         <job name="getdropflow_fsb_recover_upgrade" instance="GetDropFlow\FreeShippingBar\Cron\RecoverUpgrade" method="execute">
             <schedule>* * * * *</schedule>
         </job>
+        <job name="getdropflow_fsb_refresh_authorization" instance="GetDropFlow\FreeShippingBar\Cron\RefreshAuthorization" method="execute">
+            <schedule>17 */6 * * *</schedule>
+        </job>
     </group>
 </config>

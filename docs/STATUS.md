@@ -2,6 +2,12 @@
 
 **最后更新**：2026-11-16　**P1 修复提交：`ceb052cd`；主题兼容提交：`f9484aa`；**005/006 修复提交：`5a349036`；007 修复提交：`c5ee79da`（TR-008）；Breeze 提交：`417d1cab`（TR-009）；C1b 修复提交：`475689ed`（TR-010 通过）；**010 修复提交：`5fc8ac53`（TR-011）****　（第 6 阶段：一键升级 + 双渠道；下载分流改为 GitHub Releases）　**分支**：`claude/magento-free-shipping-bar-mqm0n2`　**仓库**：jinguoren11/free-shipping-bar-magento
 
+## 2026-11-23 任务 014：登录授权（会员改造）— 分支 `fsb-membership-authorize`，版本 1.1.0，PR 待总管合并
+- 接入 GetDropFlow 会员"登录授权"（参照 dropshipkit `AuthorizationPolicy`/`LinkClient`/`LicenseLinkService`）：设置页"授权"卡片、点按钮登录授权、站点令牌（不存 Key）、签名状态答案验证、离线 30 天、官网明确撤销才锁、`lapsed` 蓝色说明、"立即检查/断开/高级手填 Key"。
+- 未授权：设置页只剩授权/更新/更多工具卡片；前台条不显示（客户数据 section 返回 hidden）；购物车、结账、订单不碰（测试里 Quote 只读桩，di.xml 没有 Magento 业务 plugin）。Marketplace 包不含任何授权代码、不强制。
+- 测试：单元 167 项通过（新增 68：策略、闸门、状态服务（签名/域名/过期/404/5xx/断网/撤销/lapsed）、链接服务、设置页可见性、卡片数据、真实 section 源码 + 真实 builder、接线与翻译检查）；Luma/Hyvä JS 两套通过。**没有在真实 Magento 上跑**（KNOWN_ISSUES 014-3），TR-014 待派。
+- 包与 SHA-256 见 ops-board 报告 cloud/014。
+
 ## 2026-11-18 ASUS 068 复测后的修复（分支 `fsb-fixes-2`，PR 待总管合并）
 ASUS 068：TR-011 #6 与 TR-012 #12 失败（phpcs），TR-012 #4/#6/#8/#9 只有给测试包打补丁才能跑。本轮修了问题 1–7（见 `docs/KNOWN_ISSUES.md` 逐条对应），问题 8 写进文档。要点：新状态 `queued` 修好"点升级后进程被自己拒绝"（并加了走真实 页面→命令 衔接的测试）；后台 PHP 取与网站相同版本；30 秒没起来就报错；没动过文件的失败不重建、不说"已恢复"（新状态 `failed`）；所有原因码/步骤名三语；维护模式 503 不再冒红条；被杀后 cron 每 5 分钟 + `--recover` 恢复并清残留；`proc_open/exec/@rename/@disk_free_space` 已换成 Magento Shell / 集中的文件类。单元测试 84 → 99 项，JS 两套通过，四个包重新打包，Marketplace 包仍不含任何升级代码。**仍未在真实 Magento 上跑过 Shell 调用，等 TR-013（原样包，不许打补丁）。发布（生成密钥、GitHub 发版、仓库公开）必须等 TR-013 通过后。**
 

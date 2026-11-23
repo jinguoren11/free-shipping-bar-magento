@@ -3,3 +3,10 @@
 .gdf-fsb-tools__note { margin: 0 0 8px; color: #666; font-size: 12px; }
 .gdf-fsb-tools__list { margin: 0; padding-left: 18px; }
 .gdf-fsb-tools__item { margin: 0 0 4px; }
+
+.gdf-fsb-card { border: 1px solid #ccc; border-radius: 4px; padding: 12px 16px; max-width: 720px; }
+.gdf-fsb-card .note { color: #666; font-size: 12px; }
+.gdf-fsb-card .gdf-fsb-code { font-size: 24px; letter-spacing: 2px; }
+.gdf-fsb-card .gdf-fsb-lapsed { background: #e8f1fb; color: #1c4a7a; padding: 8px 10px; }
+.gdf-fsb-card .gdf-fsb-advanced { margin-top: 10px; }
+.gdf-fsb-card .gdf-fsb-result { font-weight: 600; }

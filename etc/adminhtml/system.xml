@@ -7,6 +7,14 @@
             <tab>sales</tab>
             <resource>GetDropFlow_FreeShippingBar::config</resource>
             <!-- CHANNEL:direct-begin -->
+            <group id="authorization" translate="label" type="text" sortOrder="1" showInDefault="1">
+                <label>Authorization</label>
+                <field id="authorize_card" translate="label" type="label" sortOrder="10" showInDefault="1">
+                    <frontend_model>GetDropFlow\FreeShippingBar\Block\Adminhtml\System\Config\AuthorizeCard</frontend_model>
+                </field>
+            </group>
+            <!-- CHANNEL:direct-end -->
+            <!-- CHANNEL:direct-begin -->
             <group id="upgrade" translate="label" type="text" sortOrder="5" showInDefault="1">
                 <label>Updates</label>
                 <field id="upgrade_card" translate="label" type="label" sortOrder="10" showInDefault="1">
