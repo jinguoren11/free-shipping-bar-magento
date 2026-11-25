@@ -98,7 +98,7 @@ class Run extends Action implements HttpPostActionInterface
                 $result = ['result' => $this->status->refresh()];
                 break;
             case 'key':
-                $result = ['result' => $this->link->saveTypedKey((string) $this->getRequest()->getParam('key'))];
+                $result = ['result' => $this->link->saveTypedKey((string) $this->getRequest()->getParam('license_key'))];
                 break;
             case 'disconnect':
                 $this->store->forget();

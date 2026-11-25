@@ -19,6 +19,7 @@ define([
     var SECTION = 'free-shipping-bar',
         MAX_TRIES = 40,
         RETRY_MS = 500,
+        MAX_FIXES = 3,
         SIGNATURE_KEY = 'gdf_fsb_cart_sig',
         followingCart = false;
 
@@ -58,19 +59,55 @@ define([
     },
 
     /**
+     * True when the bar data and Magento's cart section plainly disagree: one says "empty cart", the other has items.
+     * This is the picture after an order on Luma: the cart section is already empty, the stored bar data still shows
+     * the amount of the cart that was just ordered. Unknown data on either side is never "stale".
+     *
+     * @param {Object|null} bar
+     * @param {Object|null} cart
+     * @return {Boolean}
+     */
+    disagrees = function (bar, cart) {
+        var cartEmpty;
+
+        if (cartSignature(cart) === '' || !bar || !bar.state) {
+            return false;
+        }
+        cartEmpty = !Number(cart.summary_count || 0);
+
+        return cartEmpty !== (bar.state === 'empty');
+    },
+
+    /**
      * Magento refreshes its own "cart" section after every cart change, including the ones the sections.xml list
      * of this module does not know (Reorder, wishlist, multi shipping, other extensions). Follow it, so the bar
-     * can never show the amount of an older cart. On start, the current cart is also compared with the one the bar
-     * was last in step with (an order placed on the checkout pages empties the cart without any bar being there).
+     * can never show the amount of an older cart. Three ways to notice, because the page that places an order has no
+     * bar and the order of events differs between themes:
+     *  1. the cart section changes while the bar is there (live subscription);
+     *  2. on start, the cart differs from the one the bar was last in step with (saved signature);
+     *  3. whenever bar data and cart section disagree about "empty" (checked on every change of either, and again
+     *     after each reload, at most MAX_FIXES times in a row, so a server that keeps answering the same cannot loop).
      */
     followCart = function () {
         var timer = null,
             lastId = null,
-            reloadSoon = function () {
+            fixes = 0,
+            reloadSoon = function (force, delay) {
                 window.clearTimeout(timer);
                 timer = window.setTimeout(function () {
-                    customerData.reload([SECTION], false);
-                }, 200);
+                    customerData.reload([SECTION], !!force);
+                }, delay || 200);
+            },
+            verify = function () {
+                if (!disagrees(customerData.get(SECTION)(), customerData.get('cart')())) {
+                    fixes = 0;
+
+                    return;
+                }
+                if (fixes < MAX_FIXES) {
+                    fixes += 1;
+                    reloadSoon(true, fixes * 600);
+                }
             },
             current = cartSignature(customerData.get('cart')());
 
@@ -79,7 +116,7 @@ define([
         }
         followingCart = true;
         if (current !== '' && savedSignature() !== null && savedSignature() !== current) {
-            reloadSoon();
+            reloadSoon(false);
         }
         if (current !== '') {
             savedSignature(current);
@@ -95,8 +132,11 @@ define([
             if (cartSignature(cart) !== '') {
                 savedSignature(cartSignature(cart));
             }
-            reloadSoon();
+            window.setTimeout(verify, 1500);
+            reloadSoon(false);
         });
+        customerData.get(SECTION).subscribe(verify);
+        verify();
     };
 
     return Component.extend({

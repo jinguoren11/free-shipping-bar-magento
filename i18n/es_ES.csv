@@ -106,7 +106,7 @@
 "This store is authorized","Esta tienda está autorizada"
 "Membership: %1","Membresía: %1"
 "The GetDropFlow website cannot be reached right now. The bar keeps working for %1 more day(s) and the check is repeated automatically.","No se puede conectar con el sitio de GetDropFlow ahora mismo. La barra sigue funcionando %1 día(s) más y la comprobación se repite sola."
-"Your paid plan ""%1"" ended on %2. The free membership continues, and this free bar keeps working.","Tu plan de pago ""%1"" terminó el %2. La membresía gratuita continúa y esta barra gratuita sigue funcionando."
+"Your paid plan ended on %1. The free membership continues, and this free bar keeps working.","Tu plan de pago terminó el %1. La membresía gratuita continúa y esta barra gratuita sigue funcionando."
 "The GetDropFlow website no longer knows this store (it was removed or revoked in your account). Log in again to authorize it.","El sitio de GetDropFlow ya no conoce esta tienda (se eliminó o se revocó en tu cuenta). Inicia sesión de nuevo para autorizarla."
 "Check now","Comprobar ahora"
 "Disconnect this store","Desconectar esta tienda"

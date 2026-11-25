@@ -149,7 +149,7 @@ define(['jquery'], function ($) {
                     box.append(p(fill(t.offlineText, [String(card.offline_days_left)]), 'message message-warning'));
                 }
                 if (card.lapsed) {
-                    box.append(p(fill(t.lapsedText, [card.lapsed.plan, card.lapsed.ended]), 'message message-notice gdf-fsb-lapsed'));
+                    box.append(p(fill(t.lapsedText, [card.lapsed.ended]), 'message message-notice gdf-fsb-lapsed'));
                 }
                 box.append(btn(t.checkNow, function () {
                     call({op: 'check'}).done(function (d) {
@@ -181,7 +181,7 @@ define(['jquery'], function ($) {
                     .append(btn(t.keySave, function () {
                         var val = String(adv.find('input').val() || '');
 
-                        call({op: 'key', key: val}).done(function (d) {
+                        call({op: 'key', 'license_key': val}).done(function (d) {
                             handle(d, 'key');
                         });
                     }));

@@ -99,7 +99,7 @@ class AuthorizeCard extends Field
             'authorizedTitle' => (string) __('This store is authorized'),
             'plan' => (string) __('Membership: %1'),
             'offlineText' => (string) __('The GetDropFlow website cannot be reached right now. The bar keeps working for %1 more day(s) and the check is repeated automatically.'),
-            'lapsedText' => (string) __('Your paid plan "%1" ended on %2. The free membership continues, and this free bar keeps working.'),
+            'lapsedText' => (string) __('Your paid plan ended on %1. The free membership continues, and this free bar keeps working.'),
             'rejectedText' => (string) __('The GetDropFlow website no longer knows this store (it was removed or revoked in your account). Log in again to authorize it.'),
             'checkNow' => (string) __('Check now'),
             'disconnect' => (string) __('Disconnect this store'),

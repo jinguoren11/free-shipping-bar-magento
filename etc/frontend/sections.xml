@@ -13,6 +13,8 @@
     <action name="wishlist/index/cart"><section name="free-shipping-bar"/></action>
     <action name="wishlist/index/allcart"><section name="free-shipping-bar"/></action>
     <action name="checkout/cart/addgroup"><section name="free-shipping-bar"/></action>
+    <action name="rest/*/V1/guest-carts/*/payment-information"><section name="free-shipping-bar"/></action>
+    <action name="rest/*/V1/carts/mine/payment-information"><section name="free-shipping-bar"/></action>
     <action name="customer/account/loginPost"><section name="free-shipping-bar"/></action>
     <action name="customer/account/logout"><section name="free-shipping-bar"/></action>
 </config>

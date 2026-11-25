@@ -221,6 +221,33 @@ class LinkServiceTest extends TestCase
         }
     }
 
+    /**
+     * F3 (ASUS 357): `key` is Magento's own admin secret-key URL parameter (on by default), so the typed key must
+     * travel under another name, and the controller must never read `key`.
+     */
+    public function testTheTypedKeyDoesNotUseMagentosSecretKeyParameterName(): void
+    {
+        $root = dirname(__DIR__, 4);
+        $js = (string) file_get_contents($root . '/view/adminhtml/web/js/authorize-card.js');
+        $controller = (string) file_get_contents($root . '/Controller/Adminhtml/Authorize/Run.php');
+        $this->assertStringContainsString("'license_key': val", $js);
+        $this->assertStringNotContainsString("key: val", str_replace("'license_key': val", '', $js));
+        $this->assertStringContainsString("getParam('license_key')", $controller);
+        $this->assertStringNotContainsString("getParam('key')", $controller);
+    }
+
+    /** M2 (ASUS 355/357): the lapsed note shows the end date only, never the plan code. */
+    public function testTheLapsedNoteDoesNotShowThePlanCode(): void
+    {
+        $root = dirname(__DIR__, 4);
+        $this->assertStringContainsString('fill(t.lapsedText, [card.lapsed.ended])', (string) file_get_contents($root . '/view/adminhtml/web/js/authorize-card.js'));
+        foreach (['en_US', 'es_ES', 'zh_Hans_CN'] as $locale) {
+            $csv = (string) file_get_contents($root . '/i18n/' . $locale . '.csv');
+            $this->assertStringContainsString('"Your paid plan ended on %1.', $csv, $locale);
+            $this->assertStringNotContainsString('%2', (string) preg_replace('/^(?!"Your paid plan).*$/m', '', $csv), $locale);
+        }
+    }
+
     public function testNothingIsSentWhenTheBaseAddressIsNotHttps(): void
     {
         $status = $this->createMock(StatusService::class);

@@ -97,6 +97,34 @@ class HyvaInitialStateTest extends TestCase
         $this->assertTrue($this->state(new Access())['visible']);
     }
 
+    /**
+     * An older Hyva compat module (1.0.0, left behind by the one-click upgrade) builds the state straight from the
+     * builder without asking the gate: the builder bound to the gate in etc/di.xml must still hide the bar.
+     */
+    public function testTheBuilderItselfHidesTheBarForALockedStoreEvenWhenTheCallerDoesNotAsk(): void
+    {
+        $call = function (?Access $gate): array {
+            $builder = new SectionDataBuilder(new ProgressCalculator(), new MessageBuilder(), $gate);
+            $settings = ['messages' => ['progress' => '', 'success' => '', 'empty' => ''], 'bar_color' => '#3b6ea5', 'show_bar' => true,
+                'show_percent' => false, 'positions' => ['minicart' => true, 'cart' => true, 'product' => true],
+                'selectors' => ['minicart' => '', 'cart' => '', 'product' => ''], 'placement' => 'after'];
+            return $builder->build('default', 'en', true, 50.0, true, false, 0.0, $settings, static function (float $a): string {
+                return '$' . $a;
+            });
+        };
+        $this->assertFalse($call($this->gate(false))['visible']);
+        $this->assertTrue($call($this->gate(true))['visible']);
+        $this->assertTrue($call(null)['visible'], 'Marketplace edition: no gate bound');
+        $this->assertTrue($call(new Access())['visible']);
+    }
+
+    public function testDiBindsTheGateToTheBuilderInTheDownloadEditionOnly(): void
+    {
+        $root = dirname(__DIR__, 4);
+        $this->assertStringContainsString('Model\\SectionDataBuilder', (string) file_get_contents($root . '/etc/di.xml'));
+        $this->assertStringContainsString('"access"', (string) file_get_contents($root . '/etc/di.xml'));
+    }
+
     public function testAGateThatBreaksHidesTheBar(): void
     {
         $check = $this->createStub(\GetDropFlow\FreeShippingBar\Model\AccessCheck::class);

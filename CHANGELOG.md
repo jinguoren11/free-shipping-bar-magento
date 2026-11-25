@@ -9,7 +9,11 @@
 - Guides in English, Spanish and Chinese: `docs/user-guide/AUTHORIZATION.*.md`.
 - Hyva: a store that is not authorized no longer shows the bar to first-time visitors (the page's starting state now asks the same access gate as the section).
 - After an order is placed the bar no longer shows the old "Add $X more" amount on the next page (the cart signature is compared and the bar data reloaded).
-- Manual key box: separate messages for "not shaped like a key" and "the website does not know this key" (English, Spanish, Chinese).
+- Bar data is re-checked against the cart when they disagree about an empty cart (Luma after an order) and invalidated when an order is placed at checkout.
+- Manual key box: the typed key travels as `license_key` (Magento's own `key` URL parameter no longer clashes).
+- Download edition: the data builder itself honours the authorization, so an older Hyva compat module left by a one-click upgrade cannot show the bar on a locked store.
+- The "paid plan ended" note shows the date only (no plan code).
+- Manual key box (round 1): separate messages for "not shaped like a key" and "the website does not know this key" (English, Spanish, Chinese).
 
 ## 1.0.0
 - Download edition, one-click upgrade fixes after the first real-server test: the upgrade now really starts (the background command was refused because the page had already marked it "running"); it uses the same PHP version as the website and reports "did not start within 30 seconds" instead of hanging; a failure before anything was changed (bad checksum, damaged download) no longer rebuilds the shop or says "restored"; every failure reason and every step name is shown in English, Spanish and Chinese; the card waits quietly while the shop is in maintenance mode; a killed upgrade is restored by cron every minute or with `bin/magento getdropflow:fsb:upgrade --recover`, and its leftovers are removed; the engine uses Magento's Shell service and fewer direct PHP file calls (phpcs).

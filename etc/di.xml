@@ -17,4 +17,10 @@
             <argument name="check" xsi:type="object">GetDropFlow\FreeShippingBar\Model\Authorization\AuthorizationGate</argument>
         </arguments>
     </type>
+    <!-- Every builder of bar data (also an older Hyva compat module that does not ask the gate itself) hides the bar of a store that is not allowed. -->
+    <type name="GetDropFlow\FreeShippingBar\Model\SectionDataBuilder">
+        <arguments>
+            <argument name="access" xsi:type="object">GetDropFlow\FreeShippingBar\Model\Access</argument>
+        </arguments>
+    </type>
 </config>

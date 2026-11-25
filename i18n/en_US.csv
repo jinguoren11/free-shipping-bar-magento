@@ -66,7 +66,7 @@
 "This store is authorized","This store is authorized"
 "Membership: %1","Membership: %1"
 "The GetDropFlow website cannot be reached right now. The bar keeps working for %1 more day(s) and the check is repeated automatically.","The GetDropFlow website cannot be reached right now. The bar keeps working for %1 more day(s) and the check is repeated automatically."
-"Your paid plan ""%1"" ended on %2. The free membership continues, and this free bar keeps working.","Your paid plan ""%1"" ended on %2. The free membership continues, and this free bar keeps working."
+"Your paid plan ended on %1. The free membership continues, and this free bar keeps working.","Your paid plan ended on %1. The free membership continues, and this free bar keeps working."
 "The GetDropFlow website no longer knows this store (it was removed or revoked in your account). Log in again to authorize it.","The GetDropFlow website no longer knows this store (it was removed or revoked in your account). Log in again to authorize it."
 "Check now","Check now"
 "Disconnect this store","Disconnect this store"

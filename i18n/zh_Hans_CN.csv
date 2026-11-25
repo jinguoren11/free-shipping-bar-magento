@@ -106,7 +106,7 @@
 "This store is authorized","此店铺已授权"
 "Membership: %1","会员套餐：%1"
 "The GetDropFlow website cannot be reached right now. The bar keeps working for %1 more day(s) and the check is repeated automatically.","暂时连不上 GetDropFlow 官网。提示条还可继续正常使用 %1 天，系统会自动重新检查。"
-"Your paid plan ""%1"" ended on %2. The free membership continues, and this free bar keeps working.","你的付费套餐“%1”已于 %2 到期。免费会员继续有效，这个免费提示条照常使用。"
+"Your paid plan ended on %1. The free membership continues, and this free bar keeps working.","你的付费套餐已于 %1 到期。免费会员继续有效，这个免费提示条照常使用。"
 "The GetDropFlow website no longer knows this store (it was removed or revoked in your account). Log in again to authorize it.","GetDropFlow 官网已不再认识此店铺（在你的账号里被移除或撤销了）。请重新登录授权。"
 "Check now","立即检查"
 "Disconnect this store","断开此店铺"

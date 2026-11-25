@@ -29,13 +29,21 @@ class SectionDataBuilder
     private $messageBuilder;
 
     /**
+     * @var Access|null
+     */
+    private $access;
+
+    /**
      * @param ProgressCalculator $calculator
      * @param MessageBuilder $messageBuilder
+     * @param Access|null $access bound in the download edition (etc/di.xml): every caller, including an older Hyva
+     *                            compat module, then gets the hidden answer for a store that is not allowed
      */
-    public function __construct(ProgressCalculator $calculator, MessageBuilder $messageBuilder)
+    public function __construct(ProgressCalculator $calculator, MessageBuilder $messageBuilder, ?Access $access = null)
     {
         $this->calculator = $calculator;
         $this->messageBuilder = $messageBuilder;
+        $this->access = $access;
     }
 
     /**
@@ -66,7 +74,7 @@ class SectionDataBuilder
         callable $format
     ): array {
         $hidden = ['visible' => false, 'store_code' => $storeCode, 'lang' => $lang];
-        if (!$enabled || $threshold === null || (!$cartIsEmpty && $cartIsVirtual)) {
+        if (!$enabled || ($this->access !== null && !$this->access->isAllowed()) || $threshold === null || (!$cartIsEmpty && $cartIsVirtual)) {
             return $hidden;
         }
 
