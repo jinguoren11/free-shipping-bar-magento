@@ -107,3 +107,23 @@ namespace Magento\Checkout\Model {
         }
     }
 }
+
+namespace Magento\Framework\View\Element\Block {
+    if (!interface_exists(ArgumentInterface::class)) {
+        interface ArgumentInterface
+        {
+        }
+    }
+}
+
+namespace Magento\Framework\Serialize\Serializer {
+    if (!class_exists(Json::class)) {
+        class Json
+        {
+            public function serialize($data)
+            {
+                return json_encode($data);
+            }
+        }
+    }
+}

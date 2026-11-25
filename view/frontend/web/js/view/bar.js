@@ -19,21 +19,71 @@ define([
     var SECTION = 'free-shipping-bar',
         MAX_TRIES = 40,
         RETRY_MS = 500,
+        SIGNATURE_KEY = 'gdf_fsb_cart_sig',
         followingCart = false;
+
+    /**
+     * @param {Object|null} cart
+     * @return {String} data_id|summary_count|subtotal of Magento's "cart" section, '' when the section has no data yet
+     */
+    var cartSignature = function (cart) {
+        if (!cart || (cart.data_id === undefined && cart.summary_count === undefined)) {
+            return '';
+        }
+
+        return String(cart.data_id || '') + '|' + String(cart.summary_count || '') + '|' +
+            String(cart.subtotalAmount || '');
+    },
+
+    /**
+     * The signature the bar was last in step with. Kept in the browser, because the page that places an order has no
+     * bar: the next page finds a changed cart that nobody here has seen change (the bar then shows the old amount).
+     * Storage may be blocked; then the check is simply skipped.
+     *
+     * @param {String|undefined} sig when given, it is saved
+     * @return {String|null}
+     */
+    savedSignature = function (sig) {
+        try {
+            if (sig !== undefined) {
+                window.localStorage.setItem(SIGNATURE_KEY, sig);
+
+                return sig;
+            }
+
+            return window.localStorage.getItem(SIGNATURE_KEY);
+        } catch (e) {
+            return null;
+        }
+    },
 
     /**
      * Magento refreshes its own "cart" section after every cart change, including the ones the sections.xml list
      * of this module does not know (Reorder, wishlist, multi shipping, other extensions). Follow it, so the bar
-     * can never show the amount of an older cart.
+     * can never show the amount of an older cart. On start, the current cart is also compared with the one the bar
+     * was last in step with (an order placed on the checkout pages empties the cart without any bar being there).
      */
-    var followCart = function () {
+    followCart = function () {
         var timer = null,
-            lastId = null;
+            lastId = null,
+            reloadSoon = function () {
+                window.clearTimeout(timer);
+                timer = window.setTimeout(function () {
+                    customerData.reload([SECTION], false);
+                }, 200);
+            },
+            current = cartSignature(customerData.get('cart')());
 
         if (followingCart) {
             return;
         }
         followingCart = true;
+        if (current !== '' && savedSignature() !== null && savedSignature() !== current) {
+            reloadSoon();
+        }
+        if (current !== '') {
+            savedSignature(current);
+        }
         customerData.get('cart').subscribe(function (cart) {
             var id = cart ? String(cart.data_id || '') + '|' + String(cart.summary_count || '') + '|' +
                 String(cart.subtotalAmount || '') : '';
@@ -42,10 +92,10 @@ define([
                 return;
             }
             lastId = id;
-            window.clearTimeout(timer);
-            timer = window.setTimeout(function () {
-                customerData.reload([SECTION], false);
-            }, 200);
+            if (cartSignature(cart) !== '') {
+                savedSignature(cartSignature(cart));
+            }
+            reloadSoon();
         });
     };
 

@@ -131,3 +131,5 @@
 "The website says this store is not authorized.","官网显示此店铺未授权。"
 "This store is not connected yet.","此店铺还没有连接。"
 "Authorization","授权"
+"This does not look like a license key. Copy the whole key again from your GetDropFlow account and paste it here.","这看起来不是有效的 Key 格式。请从 GetDropFlow 账号里重新复制完整的 Key，再粘贴到这里。"
+"The GetDropFlow website does not know this key. Check that you copied the whole key from your account, or use the log-in button above.","GetDropFlow 官网不认识这个 Key。请检查是否复制完整，或改用上面的“登录 GetDropFlow 授权”按钮。"

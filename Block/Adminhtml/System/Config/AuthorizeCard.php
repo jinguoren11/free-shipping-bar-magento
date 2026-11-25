@@ -119,6 +119,8 @@ class AuthorizeCard extends Field
             'r_unreachable' => (string) __('The GetDropFlow website cannot be reached from this server right now. Try again in a few minutes.'),
             'r_rate_limited' => (string) __('Too many tries. Wait a few minutes and try again.'),
             'r_failed' => (string) __('The website sent an answer this plugin cannot use. Try again, or enter a key by hand.'),
+            'r_bad_key' => (string) __('This does not look like a license key. Copy the whole key again from your GetDropFlow account and paste it here.'),
+            'r_key_unknown' => (string) __('The GetDropFlow website does not know this key. Check that you copied the whole key from your account, or use the log-in button above.'),
             'r_not_configured' => (string) __('This store has no usable web address (https is needed).'),
             'r_verified' => (string) __('Checked: this store is authorized.'),
             'r_rejected' => (string) __('The website says this store is not authorized.'),

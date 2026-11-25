@@ -193,11 +193,32 @@ class LinkServiceTest extends TestCase
 
     public function testATypedKeyIsCheckedImmediately(): void
     {
-        $this->assertSame('failed', $this->link->saveTypedKey('no good'));
+        $this->assertSame('bad_key', $this->link->saveTypedKey('no good'));
         $this->assertSame('', $this->store->credential);
         $this->transport->queue[] = $this->signer->answer([]);
         $this->assertSame('linked', $this->link->saveTypedKey('  KEY-1234567890-abcdef  '));
         $this->assertSame('KEY-1234567890-abcdef', $this->store->credential);
+    }
+
+    public function testATypedKeyTheWebsiteDoesNotKnowIsReportedAsUnknown(): void
+    {
+        $this->transport->queue[] = ['status' => 404, 'body' => '{"error":"unknown_license_key"}'];
+        $this->assertSame('key_unknown', $this->link->saveTypedKey('KEY-1234567890-abcdef'));
+        $this->assertSame('rejected', $this->store->record['state']);
+    }
+
+    public function testATypedKeyWhenTheWebsiteIsDownIsSavedButUnverified(): void
+    {
+        $this->transport->queue[] = ['status' => 503, 'body' => ''];
+        $this->assertSame('linked_unverified', $this->link->saveTypedKey('KEY-1234567890-abcdef'));
+    }
+
+    public function testEveryTypedKeyResultHasACardText(): void
+    {
+        $block = (string) file_get_contents(dirname(__DIR__, 4) . '/Block/Adminhtml/System/Config/AuthorizeCard.php');
+        foreach (['linked', 'linked_unverified', 'bad_key', 'key_unknown'] as $result) {
+            $this->assertStringContainsString("'r_" . $result . "'", $block, $result);
+        }
     }
 
     public function testNothingIsSentWhenTheBaseAddressIsNotHttps(): void

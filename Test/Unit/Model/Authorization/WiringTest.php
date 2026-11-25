@@ -58,7 +58,9 @@ class WiringTest extends TestCase
         $this->assertNotEmpty($files);
         foreach ($files as $file) {
             $text = (string) file_get_contents($file);
-            $this->assertDoesNotMatchRegularExpression('/Authoriz|AccessCheck|Model\\\\Access/i', $text, $file);
+            // the Hyva initial state asks the access gate (Model\Access, present in both editions), nothing deeper
+            $pattern = basename($file) === 'InitialState.php' ? '/Authoriz|AccessCheck/i' : '/Authoriz|AccessCheck|Model\\\\Access/i';
+            $this->assertDoesNotMatchRegularExpression($pattern, $text, $file);
         }
     }
 

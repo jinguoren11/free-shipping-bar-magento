@@ -91,3 +91,5 @@
 "The website says this store is not authorized.","The website says this store is not authorized."
 "This store is not connected yet.","This store is not connected yet."
 "Authorization","Authorization"
+"This does not look like a license key. Copy the whole key again from your GetDropFlow account and paste it here.","This does not look like a license key. Copy the whole key again from your GetDropFlow account and paste it here."
+"The GetDropFlow website does not know this key. Check that you copied the whole key from your account, or use the log-in button above.","The GetDropFlow website does not know this key. Check that you copied the whole key from your account, or use the log-in button above."

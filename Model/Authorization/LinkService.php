@@ -22,6 +22,8 @@ class LinkService
     public const EXPIRED = 'expired';
     public const UNREACHABLE = 'unreachable';
     public const FAILED = 'failed';
+    public const BAD_KEY = 'bad_key';
+    public const KEY_UNKNOWN = 'key_unknown';
     public const NOT_CONFIGURED = 'not_configured';
     public const RATE_LIMITED = 'rate_limited';
 
@@ -203,16 +205,20 @@ class LinkService
      * Advanced: saves a typed key and checks it at once.
      *
      * @param string $key
-     * @return string LINKED, LINKED_UNVERIFIED or FAILED
+     * @return string LINKED, LINKED_UNVERIFIED, BAD_KEY (not shaped like a key) or KEY_UNKNOWN (the website does not know it)
      */
     public function saveTypedKey(string $key): string
     {
         $key = trim($key);
         if (preg_match(self::CREDENTIAL_SHAPE, $key) !== 1) {
-            return self::FAILED;
+            return self::BAD_KEY;
         }
         $this->store->saveCredential($key);
-        return $this->status->refresh() === StatusService::VERIFIED ? self::LINKED : self::LINKED_UNVERIFIED;
+        $answer = $this->status->refresh();
+        if ($answer === StatusService::REJECTED) {
+            return self::KEY_UNKNOWN;
+        }
+        return $answer === StatusService::VERIFIED ? self::LINKED : self::LINKED_UNVERIFIED;
     }
 
     /**
