@@ -6,6 +6,7 @@ declare(strict_types=1);
 
 namespace GetDropFlow\FreeShippingBarHyva\ViewModel;
 
+use GetDropFlow\FreeShippingBar\Model\Access;
 use GetDropFlow\FreeShippingBar\Model\AmountFormatter;
 use GetDropFlow\FreeShippingBar\Model\Config;
 use GetDropFlow\FreeShippingBar\Model\SectionDataBuilder;
@@ -59,6 +60,11 @@ class InitialState implements ArgumentInterface
     private $json;
 
     /**
+     * @var Access
+     */
+    private $access;
+
+    /**
      * @param Config $config
      * @param SectionDataBuilder $builder
      * @param SectionSettings $settings
@@ -66,6 +72,7 @@ class InitialState implements ArgumentInterface
      * @param StoreManagerInterface $storeManager
      * @param ResolverInterface $localeResolver
      * @param Json $json
+     * @param Access $access the access gate (always allows in the Marketplace edition)
      */
     public function __construct(
         Config $config,
@@ -74,7 +81,8 @@ class InitialState implements ArgumentInterface
         AmountFormatter $formatter,
         StoreManagerInterface $storeManager,
         ResolverInterface $localeResolver,
-        Json $json
+        Json $json,
+        Access $access
     ) {
         $this->config = $config;
         $this->builder = $builder;
@@ -83,6 +91,7 @@ class InitialState implements ArgumentInterface
         $this->storeManager = $storeManager;
         $this->localeResolver = $localeResolver;
         $this->json = $json;
+        $this->access = $access;
     }
 
     /**
@@ -97,7 +106,8 @@ class InitialState implements ArgumentInterface
         $data = $this->builder->build(
             (string) $store->getCode(),
             strtolower((string) strstr($this->localeResolver->getLocale() . '_', '_', true)),
-            $this->config->flag('general/enabled', $storeId),
+            // not allowed: the bar is simply not shown (same rule as the customer-data section)
+            $this->access->isAllowed() && $this->config->flag('general/enabled', $storeId),
             $this->config->getThreshold($storeId),
             true,
             false,

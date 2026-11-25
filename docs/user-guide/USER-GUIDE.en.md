@@ -47,6 +47,10 @@ Updates are delivered through Adobe Commerce Marketplace, the same way as the in
 
 To uninstall: `bin/magento module:disable GetDropFlow_FreeShippingBar`, then `composer remove getdropflow/module-free-shipping-bar`, then `bin/magento setup:upgrade` and `bin/magento cache:flush`. The module creates no database tables.
 
+## Authorization (download edition only)
+
+The download edition (GitHub / getdropflow.com, version 1.1.0 and later) must be authorized once with a free GetDropFlow account before the bar is shown. The Marketplace edition described in this guide needs no authorization and never contacts any website. Guide for the download edition: `AUTHORIZATION.en.md` (also in Spanish and Chinese).
+
 ## Themes
 
 The bar works with Magento's standard themes (Luma, Blank) and themes built on them. All style classes start with `gdf-fsb-`; text color and font are inherited from your theme, and the layout adapts to narrow screens. If your theme shows the bar in the wrong place or not at all, set a **custom position** (section 4, *Theme Compatibility*). For **Hyvä** themes you must install the separate compatibility package `getdropflow/module-free-shipping-bar-hyva` as well: without it the bar does not appear on a Hyvä store (no error is shown). On Hyvä the bar is shown on the cart page, on the product page (below the add-to-cart row) and in the cart drawer (above the items).

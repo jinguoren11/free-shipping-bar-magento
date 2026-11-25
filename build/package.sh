@@ -27,7 +27,7 @@ if [ "$MODULE" = hyva ]; then
     FILES=(ViewModel etc view registration.php composer.json README.md)
 else
     NAME=getdropflow-module-free-shipping-bar; TOP=FreeShippingBar; SRC=.
-    FILES=(Block Console Controller Cron CustomerData Model etc view i18n registration.php composer.json LICENSE README.md)
+    FILES=(Block Console Controller Cron CustomerData Model Plugin etc view i18n registration.php composer.json LICENSE README.md)
 fi
 OUT="dist/${NAME}-${VERSION}-${CHANNEL}.zip"
 STAGE="dist/stage-${MODULE}-${CHANNEL}"
@@ -42,7 +42,7 @@ if [ "$CHANNEL" = marketplace ]; then
     # 0) promotion-free README for the Marketplace edition
     [ "$MODULE" = main ] && cp README.marketplace.md "$MOD/README.md"
     # 1) remove direct-only files and blocks
-    rm -rf "$MOD/Model/Upgrade" "$MOD/Console" "$MOD/Controller" "$MOD/Cron"
+    rm -rf "$MOD/Model/Upgrade" "$MOD/Model/Authorization" "$MOD/Plugin" "$MOD/Console" "$MOD/Controller" "$MOD/Cron"
     python3 -I - "$MOD" <<'PY'
 import sys, re, pathlib
 root = pathlib.Path(sys.argv[1])
@@ -57,6 +57,9 @@ for rel in ['Block/Adminhtml/System/Config/UpgradeCard.php',
             'etc/di.xml',
             'etc/crontab.xml',
             'etc/adminhtml/routes.xml',
+            'etc/adminhtml/di.xml',
+            'Block/Adminhtml/System/Config/AuthorizeCard.php',
+            'view/adminhtml/web/js/authorize-card.js',
             'Block/Adminhtml/System/Config/StarLink.php',
             'view/adminhtml/templates/upgrade-card.phtml',
             'view/adminhtml/web/js/upgrade-card.js']:
@@ -70,7 +73,7 @@ PY
         sed -i 's#<show_more_tools>1</show_more_tools>#<show_more_tools>0</show_more_tools>#' "$MOD/etc/config.xml"
     fi
     # 3) the Marketplace edition must not contain anything that downloads, unpacks or runs code
-    if grep -rInE '(curl_|shell_exec|proc_open|popen|passthru|\bexec\s*\(|\bsystem\s*\(|ZipArchive|sodium_crypto_sign|api\.github\.com|releases/download|Model\\\\Upgrade|Upgrade\\\\)' \
+    if grep -rInE '(curl_|shell_exec|proc_open|popen|passthru|\bexec\s*\(|\bsystem\s*\(|ZipArchive|sodium_crypto_sign|api\.github\.com|releases/download|Model\\\\Upgrade|Upgrade\\\\|Authorization\\\\)' \
         --include='*.php' --include='*.xml' --include='*.js' --include='*.phtml' --include='*.html' "$MOD"; then
         echo "ERROR: direct-only code found in the Marketplace edition (see above)." >&2
         exit 1

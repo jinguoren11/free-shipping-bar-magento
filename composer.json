@@ -2,7 +2,7 @@
     "name": "getdropflow/module-free-shipping-bar",
     "description": "Free shipping progress bar for the mini cart, cart page and product page. Reads the Magento Free Shipping threshold automatically.",
     "type": "magento2-module",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "license": "MIT",
     "homepage": "https://getdropflow.com",
     "require": {

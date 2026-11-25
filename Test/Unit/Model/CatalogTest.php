@@ -32,7 +32,7 @@ class CatalogTest extends TestCase
         $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root, \FilesystemIterator::SKIP_DOTS));
         foreach ($files as $file) {
             $path = $file->getPathname();
-            if (!preg_match('/\.(php|js|phtml)$/', $path) || preg_match('#/(Test|vendor|dist|\.git|Upgrade)/#', $path)) {
+            if (!preg_match('/\.(php|js|phtml)$/', $path) || basename($path) === 'authorize-card.js' || preg_match('#/(Test|vendor|dist|\.git|Upgrade|Authorization)/#', $path)) {
                 continue;
             }
             $code = (string) file_get_contents($path);

@@ -218,3 +218,25 @@ phpcs --standard=Magento2 --extensions=php,phtml app/code/GetDropFlow/FreeShippi
 | 11 | 直接版装好后 `cron_schedule` | 有 `getdropflow_fsb_recover_upgrade`，没有升级在跑时每次都是 success 且瞬间完成（不做任何事） |
 | 12 | phpcs：Magento2 标准，直接版包解开后跑 `--error-severity=10`，**再用 `--ignore-annotations` 跑一次** | 错误 0（`--ignore-annotations` 下 `proc_open`/`exec`/`@rename`/`@disk_free_space` 这四类已经真的不存在）；请记录警告总数和按类别分布（旧数：完整跑警告 95） |
 同时回归：Luma / Blank / Hyvä / Breeze 的条（升级代码不应影响前台）。
+
+---
+## TR-014 ｜ 状态：待派单 ｜ 授权（登录授权）功能 1.1.0：ASUS 预览站实测 + Mac 截图
+
+**包**：分支 `fsb-membership-authorize` 的 `./build/package.sh --channel=direct`（及 marketplace、hyva）；**只在预览站**，不碰 jinguoren.com、线上授权服务器。授权服务器：真实 `license.getdropflow.com` 需要老任批准；没批准前用本机假服务器（`Test/Unit` 里的 Signer 可生成签名答案；公钥可只在测试包里替换 `Model/Authorization/ServerKey.php`）。
+| # | 检查 | 预期 |
+|---|---|---|
+| 1 | 全新安装 1.1.0 | 设置页只有"授权"、"更新"、"更多工具"三张卡片；前台购物车页/商品页/小购物车没有条；结账能正常下单 |
+| 2 | 点"登录 GetDropFlow 授权" | 新标签页打开官网；后台显示代码；允许后几秒内卡片变"此店铺已授权"，其余设置组出现，前台出现条（清一次浏览器本地存储） |
+| 3 | 浏览器拦截弹窗 | "重新打开授权页面"可用 |
+| 4 | 断开服务器网络（预览站挡住 license 域名）：刚授权 / 29 天 / 31 天（改 `flag` 表里 `getdropflow_fsb_answer` 的时间） | 29 天内条照常 + 卡片显示剩余天数；31 天后锁定 |
+| 5 | 官网端移除该店铺，点"立即检查" | 卡片提示官网不再认识此店铺，设置页只剩授权卡片，前台条消失 |
+| 6 | 服务器返回 `lapsed` 字段（假服务器） | 卡片显示蓝色说明，不锁定 |
+| 7 | 断开此店铺 | 条隐藏，需要重新授权 |
+| 8 | 高级：手填 Key | 正确的 Key 授权成功；错误格式被拒；不被服务器认识的 Key 显示未授权 |
+| 9 | 从 1.0.0 一键升级到 1.1.0 | 升级完成后需授权一次（预期锁定）；升级卡片仍可用 |
+| 10 | Luma / Blank / Hyvä（含 CSP）/ Breeze：授权后和未授权时 | 授权后条和 1.0.0 一样；未授权时条不出现，页面无报错 |
+| 11 | 三种后台语言（en/es/zh） | 卡片所有文字都是该语言 |
+| 12 | Marketplace 包 | 没有授权卡片、没有 `Model/Authorization`、条照常显示、`cron_schedule` 没有 `getdropflow_fsb_refresh_authorization` |
+| 13 | 直接版 `cron_schedule` | 有 `getdropflow_fsb_refresh_authorization`，没有凭证时瞬间 success |
+| 14 | phpcs（Magento2 标准，直接版包） | 错误 0；记录警告 |
+**Mac 截图（红框 = 红色矩形，线宽 3px，#FF0000；英文/西语/中文三套，英文和西语由 Claude 改图中文字；文件名 `docs/images/auth-0N-名称.{en,es,zh}.png`）**：01 locked-card 未授权设置页、02 code-waiting 等待中、03 website-allow 官网允许页、04 authorized 已授权、05 offline 离线剩余天数、06 lapsed 蓝色说明、07 rejected 官网不认识店铺、08 advanced-key 高级折叠、09 storefront-locked 锁定时的购物车页。

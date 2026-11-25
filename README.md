@@ -14,6 +14,7 @@ If this module is useful to you, please give the repository a star ⭐ — it he
 - Works with Full Page Cache and Varnish (data is loaded in the browser).
 - Multi-currency and multi-store-view aware; texts are translated (English, Spanish, Chinese included) and can be overridden per store view.
 - Read-only: never touches orders, payments, prices or shipping calculation. No tracking.
+- Download edition: authorize the store once with a free GetDropFlow account (see below).
 
 ## Screenshots
 
@@ -50,8 +51,16 @@ bin/magento cache:flush
 
 ### Upgrading
 - **Download edition**: Stores > Configuration > Sales > Free Shipping Progress Bar > press **Check for updates**, then one click. It backs up the old version, upgrades, and puts everything back automatically if anything goes wrong.
-  It reads the public latest-release information of this GitHub repository (result cached), only when you press the button; it sends no store data and has no background jobs. *(One-click upgrade is being finished; until it is released, upgrade by repeating the manual install with the new zip.)*
+  It reads the public latest-release information of this GitHub repository (result cached), only when you press the button; it sends no store data. *(One-click upgrade is being finished; until it is released, upgrade by repeating the manual install with the new zip.)*
 - **Marketplace edition**: updates come through Adobe Commerce; the module never downloads code by itself.
+
+## Authorize your store (download edition, version 1.1.0 and later)
+The bar is free, but the download edition must be linked once to a **free GetDropFlow account**: Stores > Configuration > Sales > Free Shipping Progress Bar > press **Log in to GetDropFlow to authorize**, log in on the page that opens, check the code and press **Allow**. No key to copy. Until then the bar is not shown to customers; the cart, checkout and orders are never touched.
+- An authorized store keeps working for 30 days when the GetDropFlow website cannot be reached; only the website's clear "store removed / revoked" answer locks it at once.
+- If a paid plan ended, a blue note is shown and the free bar keeps working.
+- **Privacy:** only the web address of your store and the e-mail of the account you log in with are shared; the store keeps its own token (not your account key). A cron job asks the license server (license.getdropflow.com) every 6 hours; the storefront never contacts it.
+- The Adobe Commerce Marketplace edition needs no authorization and never contacts any website.
+- Step-by-step guide with screenshots: [English](docs/user-guide/AUTHORIZATION.en.md) · [中文](docs/user-guide/AUTHORIZATION.zh.md) · [Español](docs/user-guide/AUTHORIZATION.es.md).
 
 ## Configure
 Stores > Configuration > Sales > **Free Shipping Progress Bar**.

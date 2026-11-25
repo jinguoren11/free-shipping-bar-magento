@@ -19,21 +19,108 @@ define([
     var SECTION = 'free-shipping-bar',
         MAX_TRIES = 40,
         RETRY_MS = 500,
+        MAX_FIXES = 3,
+        SIGNATURE_KEY = 'gdf_fsb_cart_sig',
         followingCart = false;
+
+    /**
+     * @param {Object|null} cart
+     * @return {String} data_id|summary_count|subtotal of Magento's "cart" section, '' when the section has no data yet
+     */
+    var cartSignature = function (cart) {
+        if (!cart || (cart.data_id === undefined && cart.summary_count === undefined)) {
+            return '';
+        }
+
+        return String(cart.data_id || '') + '|' + String(cart.summary_count || '') + '|' +
+            String(cart.subtotalAmount || '');
+    },
+
+    /**
+     * The signature the bar was last in step with. Kept in the browser, because the page that places an order has no
+     * bar: the next page finds a changed cart that nobody here has seen change (the bar then shows the old amount).
+     * Storage may be blocked; then the check is simply skipped.
+     *
+     * @param {String|undefined} sig when given, it is saved
+     * @return {String|null}
+     */
+    savedSignature = function (sig) {
+        try {
+            if (sig !== undefined) {
+                window.localStorage.setItem(SIGNATURE_KEY, sig);
+
+                return sig;
+            }
+
+            return window.localStorage.getItem(SIGNATURE_KEY);
+        } catch (e) {
+            return null;
+        }
+    },
+
+    /**
+     * True when the bar data and Magento's cart section plainly disagree: one says "empty cart", the other has items.
+     * This is the picture after an order on Luma: the cart section is already empty, the stored bar data still shows
+     * the amount of the cart that was just ordered. Unknown data on either side is never "stale".
+     *
+     * @param {Object|null} bar
+     * @param {Object|null} cart
+     * @return {Boolean}
+     */
+    disagrees = function (bar, cart) {
+        var cartEmpty;
+
+        if (cartSignature(cart) === '' || !bar || !bar.state) {
+            return false;
+        }
+        cartEmpty = !Number(cart.summary_count || 0);
+
+        return cartEmpty !== (bar.state === 'empty');
+    },
 
     /**
      * Magento refreshes its own "cart" section after every cart change, including the ones the sections.xml list
      * of this module does not know (Reorder, wishlist, multi shipping, other extensions). Follow it, so the bar
-     * can never show the amount of an older cart.
+     * can never show the amount of an older cart. Three ways to notice, because the page that places an order has no
+     * bar and the order of events differs between themes:
+     *  1. the cart section changes while the bar is there (live subscription);
+     *  2. on start, the cart differs from the one the bar was last in step with (saved signature);
+     *  3. whenever bar data and cart section disagree about "empty" (checked on every change of either, and again
+     *     after each reload, at most MAX_FIXES times in a row, so a server that keeps answering the same cannot loop).
      */
-    var followCart = function () {
+    followCart = function () {
         var timer = null,
-            lastId = null;
+            lastId = null,
+            fixes = 0,
+            reloadSoon = function (force, delay) {
+                window.clearTimeout(timer);
+                timer = window.setTimeout(function () {
+                    customerData.reload([SECTION], !!force);
+                }, delay || 200);
+            },
+            verify = function () {
+                if (!disagrees(customerData.get(SECTION)(), customerData.get('cart')())) {
+                    fixes = 0;
+
+                    return;
+                }
+                if (fixes < MAX_FIXES) {
+                    fixes += 1;
+                    reloadSoon(true, fixes * 600);
+                }
+            },
+            current = cartSignature(customerData.get('cart')());
 
         if (followingCart) {
             return;
         }
         followingCart = true;
+        if (current !== '' && savedSignature() !== null && savedSignature() !== current) {
+            reloadSoon(false);
+        }
+        if (current !== '') {
+            savedSignature(current);
+        }
         customerData.get('cart').subscribe(function (cart) {
             var id = cart ? String(cart.data_id || '') + '|' + String(cart.summary_count || '') + '|' +
                 String(cart.subtotalAmount || '') : '';
@@ -42,11 +129,14 @@ define([
                 return;
             }
             lastId = id;
-            window.clearTimeout(timer);
-            timer = window.setTimeout(function () {
-                customerData.reload([SECTION], false);
-            }, 200);
+            if (cartSignature(cart) !== '') {
+                savedSignature(cartSignature(cart));
+            }
+            window.setTimeout(verify, 1500);
+            reloadSoon(false);
         });
+        customerData.get(SECTION).subscribe(verify);
+        verify();
     };
 
     return Component.extend({
